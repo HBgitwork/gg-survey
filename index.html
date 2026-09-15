@@ -139,6 +139,8 @@ main{flex:1;padding-block:var(--pad) 28px}
 .pill.DRAFT{background:var(--amber-soft);color:var(--amber)}
 .pill.SUBMITTED{background:var(--success-soft);color:var(--success)}
 .pill.SAMPLE{background:var(--amber-soft);color:var(--amber)}
+.pill.NOT-SENT{background:var(--amber-soft);color:var(--amber)}
+.pill.SENT{background:var(--success-soft);color:var(--success)}
 
 /* ---------- step strip (narrow) ---------- */
 .steps{display:flex;gap:8px;overflow-x:auto;padding-block:10px 12px;background:var(--paper);
@@ -820,15 +822,15 @@ function dataURLtoBlob(dataURL){
   for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
   return new Blob([u8], { type: mime });
 }
-async function syncPhotos(rec, uid){
+async function syncPhotos(rec, uid, onProgress){
   const a = rec.answers || {};
   let changed = false;
   for (const fid of PHOTO_FIELDS){
     const photos = a[fid];
     if (!Array.isArray(photos)) continue;
     for (const photo of photos){
-      if (!photo || photo.uploadedAt) continue;
-      if (!photo.uri) continue;
+      if (!photo || !photo.uri) continue;
+      if (photo.uploadedAt){ if (onProgress) onProgress(); continue; }
       if (!photo.id){ photo.id = photoId(); changed = true; }
       const path = uid + '/' + rec.id + '/' + photo.id + '.jpg';
       let ok = false;
@@ -845,9 +847,88 @@ async function syncPhotos(rec, uid){
         }
       } catch(e) {}
       if (ok){ photo.uploadedAt = new Date().toISOString(); changed = true; }
+      if (onProgress) onProgress();
     }
   }
   if (changed){ try { await Store.put(rec); } catch(e) {} }
+}
+
+/* Per-survey send state, shown as a pill and on the review banner. */
+let syncSending = {};
+function syncState(rec){
+  if (rec.status !== 'SUBMITTED') return null;
+  if (syncSending[rec.id]) return 'SENDING';
+  return needsSync(rec) ? 'NOT_SENT' : 'SENT';
+}
+function countPhotos(rec){
+  const a = rec.answers || {};
+  let n = 0;
+  for (const fid of PHOTO_FIELDS){
+    const photos = a[fid];
+    if (Array.isArray(photos)) n += photos.filter(p => p && p.uri).length;
+  }
+  return n;
+}
+function countUploaded(rec){
+  const a = rec.answers || {};
+  let n = 0;
+  for (const fid of PHOTO_FIELDS){
+    const photos = a[fid];
+    if (Array.isArray(photos)) n += photos.filter(p => p && p.uploadedAt).length;
+  }
+  return n;
+}
+function syncPill(rec){
+  if (rec.status !== 'SUBMITTED') return '';
+  const st = syncState(rec);
+  if (st === 'SENT') return '<span class="pill SENT">SENT</span>';
+  return '<span class="pill NOT-SENT">NOT SENT</span>';
+}
+function sendBanner(rec){
+  if (rec.status !== 'SUBMITTED') return '';
+  const st = syncState(rec);
+  if (st === 'SENT') return '<div class="banner success"><b>Sent to the office.</b></div>';
+  if (st === 'SENDING'){
+    const s = syncSending[rec.id];
+    return `<div class="banner info"><b>Sending, photo ${s.done} of ${s.total}.</b></div>`;
+  }
+  return '<div class="banner amber"><b>Saved on this phone.</b> It will go to the office on its own as soon as you have signal.</div>';
+}
+async function syncOne(rec){
+  if (syncRunning) return false;
+  syncRunning = true;
+  try {
+    if (!sbClient || !navigator.onLine) return false;
+    const { data: sessionData } = await sbClient.auth.getSession();
+    if (!sessionData || !sessionData.session) return false;
+    const uid = sessionData.session.user.id;
+    const row = {
+      id: rec.id,
+      engineer_id: uid,
+      job_ref: String(rec.jobRef || ''),
+      site_name: String(rec.siteName || ''),
+      surveyed_by: String(rec.surveyedBy || ''),
+      survey_date: String(rec.surveyDate || ''),
+      status: String(rec.status || ''),
+      sample: !!rec.sample,
+      answers: rec.answers || {},
+      device_updated_at: rec.updatedAt || null
+    };
+    const { error } = await sbClient.from('surveys').upsert(row);
+    if (error) return false;
+    rec.syncedAt = new Date().toISOString();
+    try { await Store.put(rec); } catch(e) {}
+    const total = countPhotos(rec);
+    if (total === 0) return true;
+    const done = countUploaded(rec);
+    if (done >= total) return true;
+    syncSending[rec.id] = { total, done };
+    render();
+    await syncPhotos(rec, uid, () => { syncSending[rec.id].done++; render(); });
+    delete syncSending[rec.id];
+    return !needsSync(rec);
+  } catch(e) { return false; }
+  finally { syncRunning = false; }
 }
 
 /* Keeps the horizontal step strip sitting directly under the sticky header. */
@@ -904,7 +985,7 @@ function rowHTML(r){
     <button class="srow-main" data-act="open" data-id="${esc(r.id)}">
       <span class="srow-top">
         <span class="srow-ref">${esc(r.jobRef || 'No job reference')}</span>
-        <span style="display:flex;gap:6px;flex:0 0 auto">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span></span>
+        <span style="display:flex;gap:6px;flex:0 0 auto">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span>${syncPill(r)}</span>
       </span>
       <span class="srow-site">${esc(r.siteName || 'Site not set')}${r.client ? ' &middot; ' + esc(r.client) : ''}</span>
       <span class="srow-meta">${esc(ukDate(r.surveyDate))}${r.surveyedBy ? ' &middot; ' + esc(r.surveyedBy) : ''}${r.status === 'DRAFT' ? ' &middot; ' + pct + '% complete' : ''}</span>
@@ -940,6 +1021,7 @@ function renderSurvey(){
         <span class="syncstate"></span>
         ${rec.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}
         <span class="pill ${esc(rec.status)}">${esc(rec.status)}</span>
+        ${syncPill(rec)}
         <button class="linkbtn" data-act="menu">Menu</button>
       </span>
     </div>
@@ -1043,7 +1125,7 @@ function reviewHTML(a, miss, locked){
       </div>
       ${locked ? '' : mockButton('Fill every step with sample data')}
     </div>
-    ${locked ? `<div class="banner info"><b>Submitted.</b> Download the PDF if you need a copy, or reopen it if something needs correcting.</div>` : ''}
+    ${locked ? sendBanner(S.record) : ''}
     ${S.record.sample ? `<div class="banner amber"><b>This survey contains sample data</b>
       It was filled in by the demo button, not on site. The PDF says so in the footer. Clear the marker from the menu once the real answers are in.</div>` : ''}
     ${miss.length
@@ -2000,11 +2082,12 @@ app.addEventListener('click', async (e) => {
       const miss = missingFields(S.answers);
       if (miss.length){ S.showMissing = true; S.step = REVIEW; render(); window.scrollTo(0,0); break; }
       const go = await askConfirm({ title:'Submit this survey?',
-        body:'It will lock so nothing changes by accident. You can reopen it if something needs correcting.',
+        body:'It will lock so nothing changes by accident, and go to the office as soon as you have signal. You can reopen it if something needs correcting.',
         confirmLabel:'Submit', cancelLabel:'Not yet' });
       if (!go) break;
       S.record.status = 'SUBMITTED'; S.record.submittedAt = new Date().toISOString();
-      await persistNow(); render(); syncPending();
+      await persistNow(); render();
+      await syncOne(S.record); render(); syncPending();
       break;
     }
     case 'reopen': S.record.status = 'DRAFT'; S.record.submittedAt = null; await persistNow(); render(); break;
