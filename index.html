@@ -995,16 +995,14 @@ function footerHTML(sec, miss, submitted){
   }
   if (submitted){
     return `<div class="row" style="margin-bottom:10px">
-        <button class="btn" data-act="pdf">Make PDF</button>
-        <button class="btn secondary" data-act="emailoffice">Email the office</button>
+        <button class="btn" data-act="pdf">Download PDF</button>
       </div>
       <div class="row">
-        <button class="btn ghost" data-act="csv">Export CSV</button>
-        <button class="btn ghost" data-act="reopen">Reopen for editing</button>
+        <button class="btn secondary" data-act="csv">Export CSV</button>
+        <button class="btn secondary" data-act="reopen">Reopen for editing</button>
       </div>`;
   }
-  return `<button class="btn${miss.length?' secondary':''}" data-act="submit">${miss.length ? miss.length + ' still to answer' : 'Submit survey'}</button>
-    <button class="btn ghost" style="margin-top:8px" data-act="pdf">Preview PDF</button>`;
+  return `<button class="btn${miss.length?' secondary':''}" data-act="submit">${miss.length ? miss.length + ' still to answer' : 'Submit'}</button>`;
 }
 
 function mockButton(label, sectionId){
@@ -1045,8 +1043,7 @@ function reviewHTML(a, miss, locked){
       </div>
       ${locked ? '' : mockButton('Fill every step with sample data')}
     </div>
-    ${locked ? `<div class="banner info"><b>Sending it in</b>
-      Tap <strong>Make PDF</strong>, save or share it, then tap <strong>Email the office</strong> and attach the PDF to the draft.</div>` : ''}
+    ${locked ? `<div class="banner info"><b>Submitted.</b> Download the PDF if you need a copy, or reopen it if something needs correcting.</div>` : ''}
     ${S.record.sample ? `<div class="banner amber"><b>This survey contains sample data</b>
       It was filled in by the demo button, not on site. The PDF says so in the footer. Clear the marker from the menu once the real answers are in.</div>` : ''}
     ${miss.length
