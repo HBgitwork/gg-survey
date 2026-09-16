@@ -72,11 +72,19 @@ button{font:inherit;color:inherit}
 .topbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line);
   padding-block:max(env(safe-area-inset-top),14px) 14px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+/* Constrain header contents to the same measure as the content beneath.
+   The divider rule still runs the full width of the window. */
+.topbar-list{max-width:620px}
+.topbar-survey{max-width:var(--form)}
 .brand{display:block;height:36px;width:auto;margin:0}
 @media (min-width:768px){ .brand{height:40px} }
 .topbar-brand{display:flex;align-items:center;gap:14px;min-width:0}
 .topbar-div{width:1px;align-self:stretch;background:var(--line-strong);margin-block:4px;flex:0 0 auto}
 .brand-back{display:flex;align-items:center;background:none;border:0;padding:0;cursor:pointer;min-height:44px}
+.brand-link{display:flex;align-items:center;text-decoration:none;color:inherit;cursor:pointer;min-height:44px}
+.brand-link:focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:4px}
+.brand-link img{display:block}
+.brand-link .admin-logo{margin:0 auto 16px}
 .topbar-title{font-size:20px;line-height:1.2;margin:0;font-weight:600;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
 @media (min-width:768px){ .topbar-title{font-size:22px} }
 .topbar-title.title-trunc{cursor:pointer}
@@ -116,6 +124,18 @@ main{flex:1;padding-block:var(--pad) 28px}
   .topbar .only-narrow{display:none}
 }
 @media (max-width:1023px){ .sidenav{display:none!important} }
+
+/* On a phone the survey fills the screen: the header and action bar stay
+   fixed and only the form scrolls, so the bar cannot rubber-band away. */
+@media (max-width:1023px){
+  #app:has(.layout){height:100dvh;overflow:hidden}
+  #app:has(.layout) .topbar{position:static;flex:0 0 auto}
+  #app:has(.layout) .steps{position:static;flex:0 0 auto}
+  #app:has(.layout) .layout{min-height:0}
+  #app:has(.layout) .layout > .content{min-height:0;overflow:hidden}
+  #app:has(.layout) #secbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  #app:has(.layout) .bottombar{position:static;flex:0 0 auto}
+}
 
 /* A phone on its side has barely any height. Let the header scroll away so the
    sticky bars do not swallow the form. */
@@ -255,16 +275,23 @@ a.btn{text-decoration:none;color:#fff}
 .admin-signed{font-size:14px;color:var(--muted);margin:0 0 20px;text-align:center}
 .admin-signed b{color:var(--ink)}
 
-/* ---------- step strip (narrow) ---------- */
-.steps{display:flex;gap:8px;overflow-x:auto;padding-block:10px 12px;background:var(--paper);
-  border-bottom:1px solid var(--line);scrollbar-width:none;-webkit-overflow-scrolling:touch;
+/* ---------- step strip (narrow) ----------
+   Eight steps share the width equally: seven numbered squares plus a
+   Review button. Nothing scrolls or gets cut off at any phone width. */
+.steps{display:flex;gap:6px;padding-block:10px 12px;background:var(--paper);
+  border-bottom:1px solid var(--line);
   position:sticky;top:var(--steps-top,0);z-index:19;width:100%;max-width:100%;padding-inline:var(--pad)}
-.steps::-webkit-scrollbar{display:none}
-.step{flex:0 0 auto;min-width:44px;height:44px;padding:0 12px;border-radius:var(--r);border:1px solid var(--line);
-  background:var(--card);color:var(--steel);font-weight:600;font-size:15px;cursor:pointer}
+.step{flex:1 1 0;min-width:0;height:34px;padding:0;border-radius:var(--r);border:1px solid var(--line);
+  background:var(--card);color:var(--steel);font-weight:600;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
 .step[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .step.done{background:var(--success-soft);border-color:var(--success);color:var(--success)}
 .step[aria-current="step"].done{background:var(--ink);border-color:var(--ink);color:#fff}
+.step-review .step-review-chevron{display:none}
+@media (max-width:379px){
+  .step-review .step-review-label{display:none}
+  .step-review .step-review-chevron{display:block}
+}
 
 /* ---------- side nav (wide) ---------- */
 .sidenav h3{font-size:18px;font-weight:700;letter-spacing:-.02em;margin:0 0 10px;color:var(--ink);overflow-wrap:anywhere}
@@ -427,32 +454,30 @@ body.modal-open{ overflow:hidden }
   background:var(--card);color:var(--steel);font-size:14px;font-weight:500;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .srows{display:grid;grid-template-columns:1fr;gap:10px;max-width:620px;margin:0 auto}
-.srow{position:relative;display:block;background:var(--card);border:1px solid var(--line);
+.srow{display:flex;align-items:flex-start;background:var(--card);border:1px solid var(--line);
   border-radius:12px;overflow:hidden;box-shadow:0 1px 3px -1px rgba(14,20,23,0.06);
   transition:box-shadow 150ms ease,border-color 150ms ease}
 .srow:hover{box-shadow:0 2px 6px -2px rgba(14,20,23,0.08)}
-.srow-main{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 16px;cursor:pointer}
+.srow-main{display:flex;flex-direction:column;flex:1;min-width:0;text-align:left;
+  background:none;border:0;padding:12px 0 12px 16px;cursor:pointer}
 .srow-main:active{background:var(--primary-soft)}
-.srow-del{position:absolute;top:0;right:0;display:flex;align-items:center;justify-content:center;
-  width:44px;height:44px;background:none;border:0;color:var(--muted);cursor:pointer;
-  border-radius:0 12px 0 8px;z-index:1}
-.srow-del:hover{color:var(--danger);background:var(--danger-soft)}
-.srow-del svg{width:18px;height:18px;flex:0 0 auto}
-.srow-pdf{position:absolute;top:0;right:44px;display:flex;align-items:center;justify-content:center;
-  width:44px;height:44px;background:none;border:0;color:var(--primary);cursor:pointer;
-  border-radius:0;z-index:1}
-.srow-pdf:hover{background:var(--primary-soft)}
-.srow-pdf svg{width:18px;height:18px;flex:0 0 auto}
-.srow-pdf span{font-size:12px;font-weight:600;margin-left:4px}
+.srow-pills{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;
+  align-items:flex-start;padding:12px 8px 0 0;min-height:24px}
+.srow-actions{display:flex;flex:0 0 96px;align-self:stretch;align-items:center;
+  justify-content:center;gap:8px;padding:0 12px}
+.srow-act{display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;background:none;border:0;border-radius:8px;
+  cursor:pointer;color:var(--muted);transition:background 150ms ease,color 150ms ease}
+.srow-act svg{width:18px;height:18px;flex:0 0 auto}
+.srow-pdf{color:var(--primary)}
+.srow-pdf:hover,.srow-pdf:active{background:var(--primary-soft)}
+.srow-del{color:var(--danger)}
+.srow-del:hover,.srow-del:active{background:var(--danger-soft)}
 @media (pointer:fine){
-  .srow-del,.srow-pdf{opacity:0;transition:opacity 150ms ease}
-  .srow:hover .srow-del,.srow-del:focus-visible,
-  .srow:hover .srow-pdf,.srow-pdf:focus-visible{opacity:1}
+  .srow-actions{opacity:.55;transition:opacity 150ms ease}
+  .srow:hover .srow-actions,.srow-actions:focus-within{opacity:1}
 }
-.srow-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px;padding-right:52px}
-.srow.has-pdf .srow-top{padding-right:104px}
-.srow-pills{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
-.srow-ref{font-size:20px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;line-height:1.2}
+.srow-ref{font-size:20px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;line-height:1.2;margin-bottom:2px}
 .srow-site{display:block;font-size:15px;color:var(--slate);margin-bottom:1px}
 .srow-meta{display:block;font-size:13px;color:var(--muted)}
 .blank{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
@@ -481,39 +506,73 @@ body.modal-open{ overflow:hidden }
 /* ---------- print report ---------- */
 #report{display:none}
 @media print{
-  @page{size:A4;margin:13mm 11mm}
+  @page{size:A4;margin:13mm 11mm 14mm}
   #app{display:none!important}
   html,body{background:#fff}
   #report{display:block;font-size:10.5px;color:#0E1417;line-height:1.45}
-  #report header{border-bottom:3px solid #ED1C24;padding-bottom:9px;margin-bottom:13px}
-  #report .logo{height:58px;width:auto;display:block;margin:0 0 8px}
-  #report h1{font-size:18px;margin:0 0 5px}
-  #report .hm{display:flex;flex-wrap:wrap;gap:2px 20px;font-size:10px;color:#41535C}
-  #report .hm b{color:#0E1417}
+
+  /* Running footer on every page via @page margin boxes */
+  @page{
+    @bottom-left{content:"GG Glass & Glazing site survey";font-size:8px;color:#6B7C85}
+    @bottom-center{content:counter(page) " of " counter(pages);font-size:8px;color:#6B7C85}
+    @bottom-right{content:attr(data-jobref);font-size:8px;color:#6B7C85}
+  }
+
+  /* Header: wordmark, title, summary card, red rule */
+  #report .rp-head{margin-bottom:14px}
+  #report .rp-logo{width:42mm;height:auto;display:block;margin-bottom:6px}
+  #report .rp-title{font-size:20px;font-weight:700;letter-spacing:-.02em;color:#0E1417;margin:0 0 10px}
+  #report .rp-card{border:1px solid #D3DBDC;border-radius:4px;padding:10px 12px;display:grid;
+    grid-template-columns:1fr 1fr 1fr 1fr;gap:4px 16px;margin-bottom:0}
+  #report .rp-card .rp-row{display:flex;flex-direction:column}
+  #report .rp-card .rp-row.full{grid-column:1 / -1;margin-top:2px}
+  #report .rp-card .lbl{font-size:8.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;
+    color:#6B7C85;margin-bottom:1px}
+  #report .rp-card .val{font-size:10.5px;color:#0E1417;font-weight:600}
+  #report .rp-rule{height:2px;background:#ED1C24;border:0;margin:0 0 14px}
+
   #report .sampleband{margin:0 0 12px;padding:6px 10px;border-left:4px solid #8F5806;background:#FBF0DC;
     color:#8F5806;font-size:10px;font-weight:700;letter-spacing:.04em}
-  #report section{margin-bottom:13px}
-  #report h2{font-size:12.5px;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid #D3DBDC;
-    display:flex;align-items:center;gap:8px;break-after:avoid}
-  #report table.kvt tr{break-inside:avoid}
-  #report h3{font-size:11.5px;margin:11px 0 5px;break-after:avoid}
-  #report table{width:100%;border-collapse:collapse}
-  #report table.kvt th{width:38%;text-align:left;vertical-align:top;font-weight:600;color:#41535C;
-    padding:3px 8px 3px 0;border-bottom:1px solid #EEF2F2}
-  #report table.kvt td{vertical-align:top;padding:3px 0;border-bottom:1px solid #EEF2F2}
-  #report table.pt{font-size:9.5px;margin:4px 0 8px}
+
+  /* Sections: numbered red square + title + hairline */
+  #report section{margin-bottom:14px;break-inside:avoid}
+  #report h2{font-size:12.5px;font-weight:700;color:#0E1417;margin:0 0 8px;padding-bottom:5px;
+    border-bottom:1px solid #D3DBDC;display:flex;align-items:center;gap:8px;break-after:avoid}
+  #report h2 .n{display:inline-flex;align-items:center;justify-content:center;
+    width:16px;height:16px;background:#ED1C24;color:#fff;font-size:9px;font-weight:700;
+    border-radius:3px;flex:0 0 auto}
+
+  /* Fields: two-per-row grid, label above value, hairline under each row */
+  #report .fields{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+  #report .field-row{padding:4px 0;border-bottom:1px solid #EEF2F2;min-width:0}
+  #report .field-row.full{grid-column:1 / -1}
+  #report .field-row .lbl{font-size:8.5px;font-weight:600;text-transform:uppercase;
+    letter-spacing:0.06em;color:#6B7C85;margin-bottom:1px}
+  #report .field-row .val{font-size:10.5px;color:#0E1417;word-wrap:break-word;overflow-wrap:anywhere}
+
+  /* Panels table: explicit column widths */
+  #report table.pt{width:100%;border-collapse:collapse;font-size:9.5px;margin:4px 0 4px;grid-column:1 / -1}
   #report table.pt th{background:#F5F7F6;text-align:left;padding:4px 6px;border:1px solid #D3DBDC;font-weight:600}
-  #report table.pt td{padding:4px 6px;border:1px solid #D3DBDC;vertical-align:top}
-  #report .pgrid{display:flex;flex-wrap:wrap;gap:8px}
-  #report figure{width:31%;margin:0;break-inside:avoid}
-  #report figure img{width:100%;border:1px solid #D3DBDC;border-radius:3px}
-  #report figcaption{font-size:9px;color:#6B7C85;margin-top:3px}
-  #report .sig{border:1px solid #D3DBDC;border-radius:4px;width:250px;padding:5px}
+  #report table.pt td{padding:4px 6px;border:1px solid #D3DBDC;vertical-align:top;word-wrap:break-word;overflow-wrap:anywhere}
+  #report table.pt col.c-num{width:4%}
+  #report table.pt col.c-ref{width:16%}
+  #report table.pt col.c-w{width:10%}
+  #report table.pt col.c-h{width:10%}
+  #report table.pt col.c-q{width:6%}
+  #report table.pt col.c-shape{width:14%}
+  #report table.pt col.c-notes{width:40%}
+
+  /* Signature block inside section 7 */
+  #report .sig{border:1px solid #D3DBDC;border-radius:4px;width:240px;padding:5px;margin:6px 0 4px}
   #report .sig img{width:100%;display:block}
   #report .muted{color:#6B7C85}
-  #report footer{margin-top:16px;padding-top:7px;border-top:1px solid #D3DBDC;font-size:9px;color:#6B7C85;
-    display:flex;justify-content:space-between;gap:12px}
-  #report .brk{break-before:page}
+
+  /* Photographs: three across, bordered, own page, caption only */
+  #report .photos-section{break-before:page}
+  #report .pgrid{display:flex;flex-wrap:wrap;gap:8px}
+  #report figure{width:31%;margin:0;break-inside:avoid}
+  #report figure img{width:100%;border:1px solid #D3DBDC;border-radius:3px;display:block}
+  #report figcaption{font-size:9px;color:#6B7C85;margin-top:3px}
 }
 /* Belt and braces: a device in dark mode gets exactly the same palette. */
 @media (prefers-color-scheme:dark){
@@ -532,14 +591,13 @@ body.modal-open{ overflow:hidden }
 }
 /* ---------- loader ---------- */
 #boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:26px;background:var(--paper)}
-#boot img{width:170px;height:auto;display:block}
+  align-items:center;justify-content:center;gap:20px;background:var(--paper)}
 .boot-win{width:96px;height:96px;display:block}
 .boot-win .p{fill:var(--line);transition:fill 220ms ease}
 .boot-win .p.lit{fill:var(--primary)}
 .boot-msg{margin:0;font-size:14.5px;color:var(--muted);letter-spacing:.01em;
   min-height:20px;transition:color 200ms ease}
-#boot.filled .boot-win .p{fill:#ED1C24}
+#boot.filled .boot-win .p{fill:#ED1C24;transition:fill 320ms ease}
 #boot.filled .boot-msg{color:var(--primary);font-weight:600}
 #boot.done{opacity:0;transition:opacity 220ms ease;pointer-events:none}
 @media (prefers-reduced-motion:reduce){
@@ -564,7 +622,6 @@ body.modal-open{ overflow:hidden }
 </head>
 <body>
 <div id="boot" role="status" aria-live="polite">
-    <img src="data:image/png;base64,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" alt="GG Glass and Glazing">
     <svg class="boot-win" viewBox="0 0 64 64" aria-hidden="true">
       <rect class="p p1" x="19.6" y="19.6" width="10.1" height="10.1"/>
       <rect class="p p2" x="34.3" y="19.6" width="10.1" height="10.1"/>
@@ -580,8 +637,8 @@ body.modal-open{ overflow:hidden }
 <div id="app">
 </div>
 <div id="report" aria-hidden="true"></div>
-<dialog id="sheet"><div class="sheet" id="sheetBody"></div></dialog>
-<dialog id="confirm"></dialog>
+<dialog id="sheet" tabindex="-1"><div class="sheet" id="sheetBody"></div></dialog>
+<dialog id="confirm" tabindex="-1"></dialog>
 <input type="file" id="filein" accept="image/*" multiple hidden>
 <input type="file" id="camin" accept="image/*" capture="environment" multiple hidden>
 <input type="file" id="restorein" accept="application/json,.json" hidden>
@@ -1086,9 +1143,9 @@ function renderList(){
   const done = S.records.filter(r => r.status === 'SUBMITTED').length;
 
   app.innerHTML = `
-  <header class="topbar"><div class="wrap topbar-row">
+  <header class="topbar"><div class="wrap topbar-row topbar-list">
     <div class="topbar-brand">
-      <img class="brand" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+      <a class="brand-link" href="#/" aria-label="Home"><img class="brand" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141"></a>
       <span class="topbar-div"></span>
       <h1 class="topbar-title list-title">Site surveys</h1>
     </div>
@@ -1123,19 +1180,19 @@ function rowHTML(r){
   const pct = overallProgress(r.answers || {}).pct;
   const name = r.jobRef || r.siteName || 'this survey';
   const pdfBtn = r.status === 'SUBMITTED'
-    ? `<button class="srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" aria-label="PDF ${esc(name)}">${PDF_ICON}<span>PDF</span></button>`
+    ? `<button class="srow-act srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" title="Download PDF" aria-label="Download PDF">${PDF_ICON}</button>`
     : '';
-  return `<div class="srow${r.status === 'SUBMITTED' ? ' has-pdf' : ''}">
-    ${pdfBtn}
-    <button class="srow-del" data-act="del" data-id="${esc(r.id)}" aria-label="Delete ${esc(name)}">${BIN_ICON}</button>
+  return `<div class="srow">
     <button class="srow-main" data-act="open" data-id="${esc(r.id)}">
-      <span class="srow-top">
-        <span class="srow-ref">${esc(r.jobRef || 'No job reference')}</span>
-        <span class="srow-pills">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span>${syncPill(r)}</span>
-      </span>
+      <span class="srow-ref">${esc(r.jobRef || 'No job reference')}</span>
       <span class="srow-site">${esc(r.siteName || 'Site not set')}${r.client ? ' &middot; ' + esc(r.client) : ''}</span>
       <span class="srow-meta">${esc(ukDate(r.surveyDate))}${r.surveyedBy ? ' &middot; ' + esc(r.surveyedBy) : ''}${r.status === 'DRAFT' ? ' &middot; ' + pct + '% complete' : ''}</span>
     </button>
+    <span class="srow-pills">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span>${syncPill(r)}</span>
+    <div class="srow-actions">
+      ${pdfBtn}
+      <button class="srow-act srow-del" data-act="del" data-id="${esc(r.id)}" title="Delete" aria-label="Delete ${esc(name)}">${BIN_ICON}</button>
+    </div>
   </div>`;
 }
 
@@ -1153,12 +1210,10 @@ function renderSurvey(){
     <p class="meta">${prog.done} of ${prog.total} required answers</p>`;
 
   app.innerHTML = `
-  <header class="topbar"><div class="wrap">
+  <header class="topbar"><div class="wrap topbar-survey">
     <div class="topbar-row">
       <div class="topbar-brand">
-        <button class="brand-back" data-act="back" aria-label="Back to surveys">
-          <img class="brand" src="${LOGO_FULL}" alt="" width="344" height="141">
-        </button>
+        <a class="brand-link" href="#/" aria-label="Home"><img class="brand" src="${LOGO_FULL}" alt="" width="344" height="141"></a>
         <span class="topbar-div"></span>
         <h2 class="topbar-title">${esc(surveyTitle(a))}</h2>
       </div>
@@ -1182,7 +1237,7 @@ function renderSurvey(){
       return `<button class="step${p.complete?' done':''}" data-act="step" data-v="${i}" ${S.step===i?'aria-current="step"':''}
         aria-label="Section ${s.number}, ${esc(s.title)}${p.complete?', complete':''}">${(p.complete && S.step !== i) ? '&#10003;' : s.number}</button>`;
     }).join('')}
-    <button class="step" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''}>Review</button>
+    <button class="step step-review" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''} aria-label="Review and submit"><span class="step-review-label">Review</span><span class="step-review-chevron" aria-hidden="true">&rsaquo;</span></button>
   </nav>
 
   <div class="layout">
@@ -1210,8 +1265,6 @@ function renderSurvey(){
   setupCanvases();
   syncStickyOffsets();
   checkTitleTruncation();
-  const cur = $('.steps .step[aria-current="step"]');
-  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block:'nearest', inline:'center' });
 }
 
 function renderConfirmation(){
@@ -1447,12 +1500,14 @@ function setValue(fieldId, value, forceRender){
   const deps = DEPENDENTS[fieldId];
   if (forceRender || (deps && deps.length)) renderKeepingScroll();
 }
+function scrollTop(){ const s = $('#secbody'); if (s) s.scrollTop = 0; else window.scrollTo(0,0); }
 function renderKeepingScroll(){
-  const y = window.scrollY;
+  const scroller = $('#secbody');
+  const y = scroller ? scroller.scrollTop : window.scrollY;
   const active = document.activeElement;
   const key = active && active.dataset ? (active.dataset.f || '') + '|' + (active.dataset.i || '') + '|' + (active.dataset.k || '') : '';
   render();
-  window.scrollTo(0, y);
+  if (scroller) scroller.scrollTop = y; else window.scrollTo(0, y);
   if (key && key !== '||'){
     const parts = key.split('|');
     const sel = `[data-f="${CSS.escape(parts[0])}"]` + (parts[1] ? `[data-i="${parts[1]}"]` : '') + (parts[2] ? `[data-k="${parts[2]}"]` : '');
@@ -1931,6 +1986,7 @@ let confirmResolve = null;
 function openDialog(dlg){
   document.body.classList.add('modal-open');
   dlg.showModal();
+  dlg.focus();
 }
 ['sheet', 'confirm'].forEach((id) => {
   const dlg = document.getElementById(id);
@@ -2037,64 +2093,127 @@ async function deleteSurvey(id){
    ================================================================ */
 function panelsTable(panels){
   if (!panels || !panels.length) return '<p class="muted">No panels recorded.</p>';
-  return `<table class="pt"><thead><tr><th>#</th><th>Ref</th><th>Width mm</th><th>Height mm</th><th>Qty</th><th>Shape</th><th>Notes</th></tr></thead>
+  return `<table class="pt"><colgroup><col class="c-num"><col class="c-ref"><col class="c-w"><col class="c-h"><col class="c-q"><col class="c-shape"><col class="c-notes"></colgroup>
+    <thead><tr><th>#</th><th>Ref</th><th>Width mm</th><th>Height mm</th><th>Qty</th><th>Shape</th><th>Notes</th></tr></thead>
     <tbody>${panels.map((p,i) => `<tr><td>${i+1}</td><td>${esc(p.ref)}</td><td>${esc(p.width)}</td><td>${esc(p.height)}</td>
       <td>${esc(p.quantity)}</td><td>${esc(p.shape)}</td><td>${esc(p.notes)}</td></tr>`).join('')}</tbody></table>`;
 }
 
-function buildReport(a){
-  const secs = [], photoBlocks = [];
+/* Resolve a photo source to a URL that an <img> can load.
+   On the device, photo.uri is a data URL. If a survey was loaded from the
+   office, photo.uri may be a Storage path instead. */
+async function resolvePhotoSrc(src){
+  if (!src) return '';
+  if (src.startsWith('data:') || src.startsWith('http:') || src.startsWith('https:')) return src;
+  if (!sbClient) return '';
+  try {
+    const { data, error } = await sbClient.storage
+      .from('survey-photos').createSignedUrl(src, 600);
+    if (error || !data || !data.signedUrl) return '';
+    return data.signedUrl;
+  } catch(e){ return ''; }
+}
+
+async function buildReport(a){
+  const secs = [], photoEntries = [];
   SECTIONS.forEach(sec => {
-    const rows = [];
+    const fields = [];
     visibleFields(sec, a).forEach(f => {
       const v = a[f.id];
       if (f.type === 'photos'){
-        arr(v).forEach(p => photoBlocks.push(
-          `<figure><img src="${p.uri}" alt=""><figcaption><b>${esc(f.label)}</b>${p.caption ? '<br>' + esc(p.caption) : ''}</figcaption></figure>`));
+        arr(v).forEach(p => photoEntries.push({ label:f.label, photo:p }));
         return;
       }
       if (f.type === 'signature') return;
       if (f.type === 'panels'){
-        rows.push(`<tr><th colspan="2" style="width:auto;padding-top:8px;border:0;color:#0E1417">${esc(f.label)}</th></tr>
-          <tr><td colspan="2">${panelsTable(v)}</td></tr>`);
+        fields.push({ full:true, label:f.label, html:panelsTable(v) });
         return;
       }
       const shown = displayValue(f, v);
       if (!shown) return;
-      rows.push(`<tr><th>${esc(f.label)}</th><td>${esc(shown)}</td></tr>`);
+      const isLong = f.type === 'multiline' || String(shown).length > 60;
+      fields.push({ full:isLong, label:f.label, val:shown });
     });
-    if (rows.length) secs.push(`<section><h2><span class="n">${sec.number}</span>${esc(sec.title)}</h2>
-      <table class="kvt">${rows.join('')}</table></section>`);
+
+    let rowsHtml = '';
+    if (fields.length){
+      const cells = fields.map(f => {
+        if (f.html){
+          return `<div class="field-row full"><div class="lbl">${esc(f.label)}</div>${f.html}</div>`;
+        }
+        return `<div class="field-row${f.full?' full':''}"><div class="lbl">${esc(f.label)}</div><div class="val">${esc(f.val)}</div></div>`;
+      }).join('');
+      rowsHtml = `<div class="fields">${cells}</div>`;
+    }
+
+    if (rowsHtml || sec.id === 'signoff'){
+      let extra = '';
+      if (sec.id === 'signoff'){
+        const sig = a.signature
+          ? `<div class="sig"><img src="${a.signature}" alt="Signature"></div>`
+          : `<p class="muted">No signature captured. ${esc(a.clientRepDeclinedReason || '')}</p>`;
+        const signLine = `<p class="muted">${esc(a.clientRepName || '')} &middot; ${esc(ukDate(a.signedDate))} ${esc(a.signedTime)}</p>`;
+        extra = sig + signLine;
+      }
+      secs.push(`<section><h2><span class="n">${sec.number}</span>${esc(sec.title)}</h2>${rowsHtml}${extra}</section>`);
+    }
   });
 
-  const sig = a.signature
-    ? `<div class="sig"><img src="${a.signature}" alt="Signature"></div>`
-    : `<p class="muted">No signature captured. ${esc(a.clientRepDeclinedReason || '')}</p>`;
+  const resolvedPhotos = await Promise.all(photoEntries.map(async ({ label, photo }) => {
+    const src = await resolvePhotoSrc(photo.uri);
+    const caption = photo.caption || label;
+    return { src, caption };
+  }));
+
+  const photoBlocks = resolvedPhotos.map(p =>
+    `<figure><img data-rp="1" src="${esc(p.src)}" alt="${esc(p.caption)}"><figcaption>${esc(p.caption)}</figcaption></figure>`);
+
   const surveyor = a.surveyedBy === 'Other (type name)' ? a.surveyedByOther : a.surveyedBy;
   const sample = !!(S.record && S.record.sample);
+  const jobRef = a.jobRef || '';
 
   document.getElementById('report').innerHTML = `
-    <header>
-      <img class="logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
-      <h1>Site survey report</h1>
-      <div class="hm">${[
-        ['Job ref', a.jobRef], ['Site', a.siteName], ['Surveyed by', surveyor],
-        ['Date', ukDate(String(a.surveyDate || ''))],
-      ].filter(([, v]) => v).map(([k, v]) => `<span><b>${esc(k)}</b> ${esc(v)}</span>`).join('')}</div>
-    </header>
+    <div class="rp-head">
+      <img class="rp-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
+      <p class="rp-title">Site survey report</p>
+      <div class="rp-card">
+        <div class="rp-row"><span class="lbl">Job reference</span><span class="val">${esc(jobRef)}</span></div>
+        <div class="rp-row"><span class="lbl">Site</span><span class="val">${esc(a.siteName || '')}</span></div>
+        <div class="rp-row"><span class="lbl">Surveyed by</span><span class="val">${esc(surveyor || '')}</span></div>
+        <div class="rp-row"><span class="lbl">Date</span><span class="val">${esc(ukDate(String(a.surveyDate || '')))}</span></div>
+        <div class="rp-row full"><span class="lbl">Address</span><span class="val">${esc([a.addressLine1, a.addressLine2, a.town, a.county, a.postcode].filter(Boolean).join(', '))}</span></div>
+      </div>
+    </div>
+    <hr class="rp-rule">
     ${sample ? '<p class="sampleband">CONTAINS SAMPLE DATA. Generated for demonstration, not recorded on site.</p>' : ''}
     ${secs.join('')}
-    <section><h2><span class="n">12</span>Signature</h2>${sig}
-      <p class="muted">${esc(a.clientRepName)}${a.clientRepRole ? ', ' + esc(a.clientRepRole) : ''} &middot;
-        ${esc(ukDate(a.signedDate))} ${esc(a.signedTime)}</p></section>
-    ${photoBlocks.length ? `<div class="brk"></div><section><h2><span class="n">7</span>Photographs</h2><div class="pgrid">${photoBlocks.join('')}</div></section>` : ''}
-    <footer><span>GG Glass &amp; Glazing site survey &middot; ${esc(surveyTitle(a))}${sample ? ' &middot; contains sample data' : ''}</span>
-      <span>Generated ${new Date().toLocaleString('en-GB')}</span></footer>`;
+    ${photoBlocks.length ? `<div class="photos-section"><h2>Photographs</h2><div class="pgrid">${photoBlocks.join('')}</div></div>` : ''}`;
 }
 
-function makePdf(a){
-  buildReport(a);
+const PLACEHOLDER_SVG = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150">' +
+  '<rect width="200" height="150" fill="#F5F7F6" stroke="#D3DBDC"/>' +
+  '<text x="100" y="75" text-anchor="middle" dominant-baseline="middle" ' +
+  'font-family="sans-serif" font-size="10" fill="#6B7C85">Photograph could not be loaded</text></svg>');
+
+function waitForReportImages(){
+  const imgs = document.querySelectorAll('#report img[data-rp="1"]');
+  return Promise.all(Array.from(imgs).map(img => new Promise(resolve => {
+    if (img.complete && img.naturalWidth > 0){ resolve(); return; }
+    img.addEventListener('load', () => resolve(), { once:true });
+    img.addEventListener('error', () => {
+      img.src = PLACEHOLDER_SVG;
+      img.removeAttribute('data-rp');
+      resolve();
+    }, { once:true });
+  })));
+}
+
+async function makePdf(a){
+  await buildReport(a);
+  document.getElementById('report').setAttribute('data-jobref', a.jobRef || '');
   document.title = 'GG Survey ' + (a.jobRef || '') + ' ' + (a.siteName || '');
+  await waitForReportImages();
   setTimeout(() => { window.print(); setTimeout(() => { document.title = 'GG Survey'; }, 400); }, 60);
 }
 
@@ -2259,25 +2378,25 @@ app.addEventListener('click', async (e) => {
     }
     case 'back': await persistNow(); S.record = null; S.answers = null; S.view = 'list'; await loadList(); break;
     case 'del': await deleteSurvey(t.dataset.id, false); break;
-    case 'step': S.step = Number(v); S.showMissing = false; render(); window.scrollTo(0,0); break;
-    case 'prev': S.step = Math.max(0, S.step - 1); render(); window.scrollTo(0,0); break;
+    case 'step': S.step = Number(v); S.showMissing = false; render(); scrollTop(); break;
+    case 'prev': S.step = Math.max(0, S.step - 1); render(); scrollTop(); break;
     case 'next': {
       if (S.step < REVIEW){
         const sec = SECTIONS[S.step];
         if (sec) visibleFields(sec, S.answers).forEach(f => touchField(f.id));
         queueSave();
       }
-      S.step = Math.min(REVIEW, S.step + 1); render(); window.scrollTo(0,0); break;
+      S.step = Math.min(REVIEW, S.step + 1); render(); scrollTop(); break;
     }
     case 'jump': {
       const i = SECTIONS.findIndex(s => s.id === v);
-      if (i >= 0){ S.step = i; render(); window.scrollTo(0,0);
+      if (i >= 0){ S.step = i; render(); scrollTop();
         if (t.dataset.f){ const el = $(`[data-field="${CSS.escape(t.dataset.f)}"]`); if (el) el.scrollIntoView({ block:'center' }); } }
       break;
     }
     case 'submit': {
       const miss = missingFields(S.answers);
-      if (miss.length){ S.showMissing = true; S.step = REVIEW; render(); window.scrollTo(0,0); break; }
+      if (miss.length){ S.showMissing = true; S.step = REVIEW; render(); scrollTop(); break; }
       const go = await askConfirm({ title:'Submit this survey?',
         body:'It will lock so nothing changes by accident, and go to the office as soon as you have signal. You can reopen it if something needs correcting.',
         confirmLabel:'Submit', cancelLabel:'Not yet' });
@@ -2288,7 +2407,7 @@ app.addEventListener('click', async (e) => {
       S.step = REVIEW; location.hash = '#/submitted';
       break;
     }
-    case 'viewForm': S.view = 'survey'; S.step = REVIEW; history.pushState(null, '', '#/surveys'); render(); window.scrollTo(0,0); break;
+    case 'viewForm': S.view = 'survey'; S.step = REVIEW; history.pushState(null, '', '#/surveys'); render(); scrollTop(); break;
     case 'reopen': S.record.status = 'DRAFT'; S.record.submittedAt = null; await persistNow(); render(); break;
     case 'pdf': await persistNow(); makePdf(S.answers); break;
     case 'csv': await persistNow(); await shareOrDownload(toCsv([S.record]), (S.answers.jobRef || 'survey') + '.csv', 'text/csv'); break;
@@ -2433,7 +2552,7 @@ function openSurvey(rec){
   S.record = rec;
   S.answers = Object.assign(emptyAnswers(), rec.answers || {});
   S.step = 0; S.showMissing = false; S.view = 'survey';
-  render(); window.scrollTo(0,0);
+  render(); scrollTop();
 }
 function currentRoute(){
   const h = location.hash.replace(/^#/, '');
@@ -2512,7 +2631,7 @@ async function renderAdmin(){
     app.innerHTML = `
     <div class="home door">
       <form id="adminSignIn" class="admin-card">
-        <img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+        <a class="brand-link" href="#/" aria-label="Home"><img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141"></a>
         <h1>Sign in</h1>
         <p class="sub">For the office. Engineers do not need an account.</p>
         <div class="field">
@@ -2534,7 +2653,7 @@ async function renderAdmin(){
   app.innerHTML = `
   <div class="home door">
     <div class="admin-card">
-      <img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+      <a class="brand-link" href="#/" aria-label="Home"><img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141"></a>
       <h1>Office</h1>
       <p class="admin-signed">Signed in as <b>${esc(adminEmail)}</b></p>
       <div class="home-actions">
@@ -2567,17 +2686,23 @@ function boot(){
   let lit = 0;
   let appReady = false;
   let finished = false;
+  let finishScheduled = false;
 
   function lightPane(i){
     panes[i].classList.add('lit');
     msgEl.textContent = MESSAGES[i];
+  }
+  function scheduleFinish(){
+    if (finished || finishScheduled || lit < 4) return;
+    finishScheduled = true;
+    setTimeout(finishBoot, reduce ? 0 : 700);
   }
   function finishBoot(){
     if (finished) return;
     finished = true;
     msgEl.textContent = 'Ready';
     bootEl.classList.add('filled');
-    const t1 = reduce ? 0 : 300;
+    const t1 = reduce ? 0 : 900;
     const t2 = reduce ? 0 : 220;
     setTimeout(() => {
       bootEl.classList.add('done');
@@ -2597,12 +2722,12 @@ function boot(){
     }
     if (lit >= 4){
       clearInterval(timer);
-      if (appReady) finishBoot();
+      if (appReady) scheduleFinish();
     }
   }, 50);
 
   Store.init().then(() => loadList())
-    .then(() => { syncPending(); appReady = true; if (lit >= 4 && !finished) finishBoot(); })
+    .then(() => { syncPending(); appReady = true; if (lit >= 4 && !finished) scheduleFinish(); })
     .catch(err => {
       clearInterval(timer);
       bootEl.remove();

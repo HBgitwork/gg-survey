@@ -96,7 +96,8 @@ button{font:inherit;color:inherit}
 }
 @media (max-width:479px){ .brand{height:32px} }
 a.linkbtn{text-decoration:none}
-.sidenav-back{display:block;margin-bottom:16px}
+.sidenav-back{display:block;margin-bottom:16px;min-height:44px;padding:8px 0;width:100%;text-align:left}
+.sidenav-back:hover{color:var(--ink)}
 h1{font-size:24px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .sub{font-size:14px;font-weight:400;color:var(--muted);margin:0}
@@ -1242,7 +1243,7 @@ function renderSurvey(){
 
   <div class="layout">
     <aside class="sidenav" aria-label="Survey sections">
-      <a class="linkbtn sidenav-back" href="#/surveys">&lsaquo; Site surveys</a>
+      <button class="linkbtn sidenav-back" data-act="back">&lsaquo; Site surveys</button>
       <h3>${esc(surveyTitle(a))}</h3>
       ${progBlock}
       <ol>
