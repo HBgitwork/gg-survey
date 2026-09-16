@@ -138,6 +138,32 @@ main{flex:1;padding-block:var(--pad) 28px}
   #app:has(.layout) .bottombar{position:static;flex:0 0 auto}
 }
 
+/* On a phone every screen fills the viewport exactly: the header and
+   action bar stay fixed and only the content scrolls, so the primary
+   button is never hidden under the browser chrome. */
+@media (max-width:1023px){
+  /* Survey list */
+  #app:has(.topbar-list){height:100dvh;overflow:hidden}
+  #app:has(.topbar-list) .topbar{position:static;flex:0 0 auto}
+  #app:has(.topbar-list) main{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  #app:has(.topbar-list) .filters{flex:0 0 auto}
+  #app:has(.topbar-list) .srows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  #app:has(.topbar-list) .bottombar{position:static;flex:0 0 auto}
+
+  /* Homepage */
+  #app:has(.home.landing){height:100dvh;overflow:hidden}
+  #app:has(.home.landing) .home.landing{height:100dvh;overflow:hidden}
+  #app:has(.home.landing) .home.landing .panel{overflow-y:auto;overscroll-behavior:contain;min-height:0}
+
+  /* Confirmation */
+  #app:has(.confirm){height:100dvh;overflow:hidden}
+  #app:has(.confirm) .confirm{height:100dvh;overflow-y:auto;overscroll-behavior:contain}
+
+  /* Admin sign-in and office */
+  #app:has(.home.door){height:100dvh;overflow:hidden}
+  #app:has(.home.door) .home.door{height:100dvh;overflow-y:auto;overscroll-behavior:contain}
+}
+
 /* A phone on its side has barely any height. Let the header scroll away so the
    sticky bars do not swallow the form. */
 @media (max-height:560px){
@@ -237,7 +263,7 @@ a.btn{text-decoration:none;color:#fff}
   .home.landing .points{gap:9px;margin-bottom:22px}
 }
 .home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
-.home.door{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;min-height:100dvh;padding-block:var(--pad) 15vh;
+.home.door{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;min-height:100dvh;padding-block:var(--pad) 15dvh;
   background:radial-gradient(ellipse 90% 65% at 50% 30%, rgba(10,90,104,0.045), transparent 72%)}
 .home-actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px}
 .home-primary{font-size:18px;font-weight:700;min-height:56px}
@@ -247,7 +273,7 @@ a.btn{text-decoration:none;color:#fff}
 
 /* ---------- confirmation screen ---------- */
 .confirm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:var(--pad) 15vh;text-align:center;min-height:100dvh}
+  padding:var(--pad) 15dvh;text-align:center;min-height:100dvh}
 .confirm-tick{width:64px;height:64px;border-radius:50%;background:var(--success-soft);
   display:flex;align-items:center;justify-content:center;margin:0 0 20px}
 .confirm-tick svg{width:32px;height:32px}
@@ -288,10 +314,11 @@ a.btn{text-decoration:none;color:#fff}
 .step[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .step.done{background:var(--success-soft);border-color:var(--success);color:var(--success)}
 .step[aria-current="step"].done{background:var(--ink);border-color:var(--ink);color:#fff}
-.step-review .step-review-chevron{display:none}
-@media (max-width:379px){
+.step-review-icon{display:none}
+@media (max-width:599px){
+  .step-review{margin-left:4px;color:var(--primary)}
   .step-review .step-review-label{display:none}
-  .step-review .step-review-chevron{display:block}
+  .step-review .step-review-icon{display:flex}
 }
 
 /* ---------- side nav (wide) ---------- */
@@ -482,7 +509,7 @@ body.modal-open{ overflow:hidden }
 .srow-site{display:block;font-size:15px;color:var(--slate);margin-bottom:1px}
 .srow-meta{display:block;font-size:13px;color:var(--muted)}
 .blank{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-  padding:64px 20px;grid-column:1/-1;min-height:50vh}
+  padding:64px 20px;grid-column:1/-1;min-height:50dvh}
 .blank-logo{height:96px;width:auto;margin:0 0 20px}
 .blank h3{margin:0 0 28px;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .blank .btn{max-width:280px}
@@ -1238,7 +1265,7 @@ function renderSurvey(){
       return `<button class="step${p.complete?' done':''}" data-act="step" data-v="${i}" ${S.step===i?'aria-current="step"':''}
         aria-label="Section ${s.number}, ${esc(s.title)}${p.complete?', complete':''}">${(p.complete && S.step !== i) ? '&#10003;' : s.number}</button>`;
     }).join('')}
-    <button class="step step-review" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''} aria-label="Review and submit"><span class="step-review-label">Review</span><span class="step-review-chevron" aria-hidden="true">&rsaquo;</span></button>
+    <button class="step step-review" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''} aria-label="Review and submit" title="Review and submit"><span class="step-review-label">Review</span><svg class="step-review-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="17" height="17"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14l2 2 4-4"/></svg></button>
   </nav>
 
   <div class="layout">
