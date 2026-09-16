@@ -495,7 +495,9 @@ body.modal-open{ overflow:hidden }
 
 .srow-check{flex:0 0 24px;width:24px;height:24px;border-radius:6px;border:2px solid var(--line);
   background:var(--card);margin:0 12px 0 0;cursor:pointer;flex-shrink:0;display:none;
-  align-items:center;justify-content:center;transition:background 150ms ease,border-color 150ms ease}
+  align-items:center;justify-content:center;transition:background 120ms ease,border-color 120ms ease}
+.srow{transition:background 120ms ease}
+.srow.select-mode{background:var(--primary-soft)}
 .srow-check.checked{background:var(--primary);border-color:var(--primary)}
 .srow-check.checked svg{display:block}
 .srow-check svg{display:none;width:16px;height:16px;color:#fff}
@@ -2155,6 +2157,18 @@ async function deleteSurvey(id){
   return true;
 }
 
+function updateBulkBar(){
+  const sel = S.selectedIds;
+  const recs = S.records.filter(r => S.filter === 'ALL' ? true : r.status === S.filter);
+  const allVisible = recs.length > 0 && recs.every(r => sel.has(r.id));
+  const countEl = document.querySelector('.bulk-count');
+  if (countEl) countEl.textContent = sel.size + ' selected';
+  const delBtn = document.querySelector('[data-act="bulkDelete"]');
+  if (delBtn) delBtn.disabled = sel.size === 0;
+  const selAllBtn = document.querySelector('[data-act="selectAll"]');
+  if (selAllBtn) selAllBtn.textContent = allVisible ? 'Clear' : 'Select all';
+}
+
 async function bulkDelete(){
   const ids = Array.from(S.selectedIds);
   if (!ids.length) return;
@@ -2448,19 +2462,34 @@ app.addEventListener('click', async (e) => {
     case 'filter': S.filter = v; S.selectedIds.clear(); S.selectMode = false; render(); break;
     case 'adminSignOut': await adminSignOut(); break;
     case 'del': await deleteSurvey(t.dataset.id); break;
-    case 'startSelect': S.selectMode = true; S.selectedIds.clear(); render(); break;
-    case 'cancelSelect': S.selectMode = false; S.selectedIds.clear(); render(); break;
+    case 'startSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = true; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
+    case 'cancelSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = false; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
     case 'toggle': {
       const id = t.dataset.id;
-      if (S.selectedIds.has(id)) S.selectedIds.delete(id); else S.selectedIds.add(id);
-      render(); break;
+      const now = S.selectedIds.has(id);
+      if (now) S.selectedIds.delete(id); else S.selectedIds.add(id);
+      const card = t.closest('.srow');
+      if (card){
+        const chk = card.querySelector('.srow-check');
+        if (chk){ chk.classList.toggle('checked', !now); chk.setAttribute('aria-checked', String(!now)); }
+      }
+      updateBulkBar();
+      break;
     }
     case 'selectAll': {
       const recs = S.records.filter(r => S.filter === 'ALL' ? true : r.status === S.filter);
       const allSelected = recs.length > 0 && recs.every(r => S.selectedIds.has(r.id));
       if (allSelected) { recs.forEach(r => S.selectedIds.delete(r.id)); }
       else { recs.forEach(r => S.selectedIds.add(r.id)); }
-      render(); break;
+      document.querySelectorAll('.srow').forEach(card => {
+        const id = card.querySelector('[data-id]');
+        if (!id) return;
+        const checked = S.selectedIds.has(id.dataset.id);
+        const chk = card.querySelector('.srow-check');
+        if (chk){ chk.classList.toggle('checked', checked); chk.setAttribute('aria-checked', String(checked)); }
+      });
+      updateBulkBar();
+      break;
     }
     case 'bulkDelete': await bulkDelete(); break;
     case 'listpdf': e.stopPropagation(); { const rec = await Store.get(t.dataset.id); if (rec) makePdf(rec.answers || {}); break; }
