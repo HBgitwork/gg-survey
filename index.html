@@ -427,32 +427,30 @@ body.modal-open{ overflow:hidden }
   background:var(--card);color:var(--steel);font-size:14px;font-weight:500;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .srows{display:grid;grid-template-columns:1fr;gap:10px;max-width:620px;margin:0 auto}
-.srow{position:relative;display:block;background:var(--card);border:1px solid var(--line);
+.srow{display:flex;align-items:flex-start;background:var(--card);border:1px solid var(--line);
   border-radius:12px;overflow:hidden;box-shadow:0 1px 3px -1px rgba(14,20,23,0.06);
   transition:box-shadow 150ms ease,border-color 150ms ease}
 .srow:hover{box-shadow:0 2px 6px -2px rgba(14,20,23,0.08)}
-.srow-main{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 16px;cursor:pointer}
+.srow-main{display:flex;flex-direction:column;flex:1;min-width:0;text-align:left;
+  background:none;border:0;padding:12px 0 12px 16px;cursor:pointer}
 .srow-main:active{background:var(--primary-soft)}
-.srow-del{position:absolute;top:0;right:0;display:flex;align-items:center;justify-content:center;
-  width:44px;height:44px;background:none;border:0;color:var(--muted);cursor:pointer;
-  border-radius:0 12px 0 8px;z-index:1}
-.srow-del:hover{color:var(--danger);background:var(--danger-soft)}
-.srow-del svg{width:18px;height:18px;flex:0 0 auto}
-.srow-pdf{position:absolute;top:0;right:44px;display:flex;align-items:center;justify-content:center;
-  width:44px;height:44px;background:none;border:0;color:var(--primary);cursor:pointer;
-  border-radius:0;z-index:1}
-.srow-pdf:hover{background:var(--primary-soft)}
-.srow-pdf svg{width:18px;height:18px;flex:0 0 auto}
-.srow-pdf span{font-size:12px;font-weight:600;margin-left:4px}
+.srow-pills{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;
+  align-items:flex-start;padding:12px 8px 0 0;min-height:24px}
+.srow-actions{display:flex;flex:0 0 96px;align-self:stretch;align-items:center;
+  justify-content:center;gap:8px;padding:0 12px}
+.srow-act{display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;background:none;border:0;border-radius:8px;
+  cursor:pointer;color:var(--muted);transition:background 150ms ease,color 150ms ease}
+.srow-act svg{width:18px;height:18px;flex:0 0 auto}
+.srow-pdf{color:var(--primary)}
+.srow-pdf:hover,.srow-pdf:active{background:var(--primary-soft)}
+.srow-del{color:var(--danger)}
+.srow-del:hover,.srow-del:active{background:var(--danger-soft)}
 @media (pointer:fine){
-  .srow-del,.srow-pdf{opacity:0;transition:opacity 150ms ease}
-  .srow:hover .srow-del,.srow-del:focus-visible,
-  .srow:hover .srow-pdf,.srow-pdf:focus-visible{opacity:1}
+  .srow-actions{opacity:.55;transition:opacity 150ms ease}
+  .srow:hover .srow-actions,.srow-actions:focus-within{opacity:1}
 }
-.srow-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:2px;padding-right:52px}
-.srow.has-pdf .srow-top{padding-right:104px}
-.srow-pills{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;min-height:24px}
-.srow-ref{font-size:20px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;line-height:1.2}
+.srow-ref{font-size:20px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;line-height:1.2;margin-bottom:2px}
 .srow-site{display:block;font-size:15px;color:var(--slate);margin-bottom:1px}
 .srow-meta{display:block;font-size:13px;color:var(--muted)}
 .blank{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
@@ -1121,19 +1119,19 @@ function rowHTML(r){
   const pct = overallProgress(r.answers || {}).pct;
   const name = r.jobRef || r.siteName || 'this survey';
   const pdfBtn = r.status === 'SUBMITTED'
-    ? `<button class="srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" aria-label="PDF ${esc(name)}">${PDF_ICON}<span>PDF</span></button>`
+    ? `<button class="srow-act srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" title="Download PDF" aria-label="Download PDF">${PDF_ICON}</button>`
     : '';
-  return `<div class="srow${r.status === 'SUBMITTED' ? ' has-pdf' : ''}">
-    ${pdfBtn}
-    <button class="srow-del" data-act="del" data-id="${esc(r.id)}" aria-label="Delete ${esc(name)}">${BIN_ICON}</button>
+  return `<div class="srow">
     <button class="srow-main" data-act="open" data-id="${esc(r.id)}">
-      <span class="srow-top">
-        <span class="srow-ref">${esc(r.jobRef || 'No job reference')}</span>
-        <span class="srow-pills">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span>${syncPill(r)}</span>
-      </span>
+      <span class="srow-ref">${esc(r.jobRef || 'No job reference')}</span>
       <span class="srow-site">${esc(r.siteName || 'Site not set')}${r.client ? ' &middot; ' + esc(r.client) : ''}</span>
       <span class="srow-meta">${esc(ukDate(r.surveyDate))}${r.surveyedBy ? ' &middot; ' + esc(r.surveyedBy) : ''}${r.status === 'DRAFT' ? ' &middot; ' + pct + '% complete' : ''}</span>
     </button>
+    <span class="srow-pills">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span>${syncPill(r)}</span>
+    <div class="srow-actions">
+      ${pdfBtn}
+      <button class="srow-act srow-del" data-act="del" data-id="${esc(r.id)}" title="Delete" aria-label="Delete ${esc(name)}">${BIN_ICON}</button>
+    </div>
   </div>`;
 }
 
