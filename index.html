@@ -490,12 +490,13 @@ body.modal-open{ overflow:hidden }
   background:none;border:0;padding:12px 0 12px 16px;cursor:pointer}
 .srow-main:active{background:var(--primary-soft)}
 .srow-pills{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;
-  align-items:flex-start;padding:12px 8px 0 0;min-height:24px}
+  align-items:center;padding:0 8px 0 0;min-height:24px;align-self:flex-start;margin-top:12px}
 .srow-actions{display:flex;flex:0 0 96px;align-self:stretch;align-items:center;
-  justify-content:center;gap:8px;padding:0 12px}
-.srow-act{display:flex;align-items:center;justify-content:center;
+  justify-content:flex-start;gap:8px;padding:0 4px}
+.srow-act{display:flex;align-items:center;justify-content:center;flex:0 0 40px;
   width:40px;height:40px;background:none;border:0;border-radius:8px;
   cursor:pointer;color:var(--muted);transition:background 150ms ease,color 150ms ease}
+.srow-slot-empty{flex:0 0 40px;width:40px;height:40px}
 .srow-act svg{width:18px;height:18px;flex:0 0 auto}
 .srow-pdf{color:var(--primary)}
 .srow-pdf:hover,.srow-pdf:active{background:var(--primary-soft)}
@@ -1207,9 +1208,9 @@ const PDF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 function rowHTML(r){
   const pct = overallProgress(r.answers || {}).pct;
   const name = r.jobRef || r.siteName || 'this survey';
-  const pdfBtn = r.status === 'SUBMITTED'
+  const pdfSlot = r.status === 'SUBMITTED'
     ? `<button class="srow-act srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" title="Download PDF" aria-label="Download PDF">${PDF_ICON}</button>`
-    : '';
+    : `<span class="srow-slot-empty" aria-hidden="true"></span>`;
   return `<div class="srow">
     <button class="srow-main" data-act="open" data-id="${esc(r.id)}">
       <span class="srow-ref">${esc(r.jobRef || 'No job reference')}</span>
@@ -1218,7 +1219,7 @@ function rowHTML(r){
     </button>
     <span class="srow-pills">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span>${syncPill(r)}</span>
     <div class="srow-actions">
-      ${pdfBtn}
+      ${pdfSlot}
       <button class="srow-act srow-del" data-act="del" data-id="${esc(r.id)}" title="Delete" aria-label="Delete ${esc(name)}">${BIN_ICON}</button>
     </div>
   </div>`;
