@@ -68,7 +68,6 @@ button{font:inherit;color:inherit}
 
 /* ---------- shell ---------- */
 #app{min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);visibility:hidden}
-#app > .boot{visibility:visible}
 .topbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line);
   padding-block:max(env(safe-area-inset-top),14px) 14px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -489,19 +488,20 @@ body.modal-open{ overflow:hidden }
   .step[aria-current="step"],.filters button[aria-pressed="true"],.snav[aria-current="step"]{background:var(--ink);color:#fff}
 }
 /* ---------- loader ---------- */
-.boot{min-height:100dvh;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:26px;background:var(--paper)}
-.boot img{width:170px;height:auto;display:block}
-.boot .bar{width:170px;height:2px;border-radius:99px;background:var(--line);
-  overflow:hidden;position:relative}
-.boot .bar i{position:absolute;inset:0;border-radius:99px;transform-origin:left;
-  transform:scaleX(0);
+#boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:28px;background:var(--paper)}
+#boot img{width:170px;height:auto;display:block}
+#boot .boot-bar{width:170px;height:3px;border-radius:99px;background:var(--line);
+  overflow:hidden}
+#boot .boot-bar i{display:block;height:100%;width:100%;border-radius:99px;
+  transform-origin:left;transform:scaleX(0);
   background:linear-gradient(90deg,var(--primary) 0 78%,#ED1C24 100%);
-  animation:bootfill 850ms cubic-bezier(.22,1,.36,1) forwards}
+  animation:bootfill 1600ms cubic-bezier(.22,1,.36,1) forwards}
 @keyframes bootfill{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
-.boot.done{opacity:0;transition:opacity 160ms ease}
+#boot.done{opacity:0;transition:opacity 220ms ease;pointer-events:none}
 @media (prefers-reduced-motion:reduce){
-  .boot .bar i{animation:none;transform:scaleX(1)}
+  #boot .boot-bar i{animation:none;transform:scaleX(1)}
+  #boot.done{transition:opacity 220ms ease!important}
 }
 /* Fatal error screen, shown if the app cannot start. */
 .boot-fatal{max-width:470px;margin:0 auto;padding:44px var(--pad) 32px}
@@ -519,11 +519,11 @@ body.modal-open{ overflow:hidden }
 </style>
 </head>
 <body>
-<div id="app">
-  <div class="boot" id="boot">
+<div id="boot">
     <img src="data:image/png;base64,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" alt="GG Glass and Glazing">
-    <div class="bar"><i></i></div>
+    <div class="boot-bar"><i></i></div>
   </div>
+<div id="app">
 </div>
 <div id="report" aria-hidden="true"></div>
 <dialog id="sheet"><div class="sheet" id="sheetBody"></div></dialog>
@@ -2493,16 +2493,18 @@ function boot(){
   }
   const bootEl = document.getElementById('boot');
   const elapsed = performance.now() - bootStart;
-  const hold = Math.max(0, 1000 - elapsed);
+  const hold = Math.max(0, 1800 - elapsed);
   setTimeout(() => {
     bootEl.classList.add('done');
     setTimeout(() => {
       bootEl.remove();
       render();
       app.style.visibility = 'visible';
-    }, 160);
+    }, 220);
   }, hold);
   Store.init().then(() => loadList()).then(() => syncPending()).catch(err => {
+    bootEl.remove();
+    app.style.visibility = 'visible';
     app.innerHTML = `<div class="boot-fatal">
       <img class="boot-fatal-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
       <h1>The app could not start</h1>
