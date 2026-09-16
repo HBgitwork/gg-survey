@@ -764,7 +764,7 @@ const STORAGE_LABEL = {
 /* ================================================================
    Application state
    ================================================================ */
-const S = { view:'list', filter:'ALL', records:[], record:null, answers:null, step:0, showMissing:false, saving:false, lookupMsg:'', justSubmitted:false };
+const S = { view:'list', filter:'ALL', records:[], record:null, answers:null, step:0, showMissing:false, saving:false, lookupMsg:'' };
 const REVIEW = SECTIONS.length;
 let saveTimer = null;
 
@@ -1134,7 +1134,7 @@ function renderConfirmation(){
   app.innerHTML = `
   <div class="confirm">
     <div class="confirm-tick" style="color:var(--success)">${TICK}</div>
-    <h1>Survey submitted</h1>
+    <h1>Form submitted</h1>
     <p class="confirm-ref">${esc(a.jobRef || 'No job reference')}</p>
     <p class="confirm-site">${esc(a.siteName || 'Site not set')}</p>
     <p class="confirm-send">${esc(sendLine)}</p>
@@ -2171,11 +2171,11 @@ app.addEventListener('click', async (e) => {
       S.record.status = 'SUBMITTED'; S.record.submittedAt = new Date().toISOString();
       await persistNow();
       await syncOne(S.record); syncPending();
-      S.justSubmitted = true; S.step = REVIEW; render(); window.scrollTo(0,0);
+      S.step = REVIEW; location.hash = '#/submitted';
       break;
     }
-    case 'viewForm': S.justSubmitted = false; S.step = REVIEW; render(); window.scrollTo(0,0); break;
-    case 'reopen': S.record.status = 'DRAFT'; S.record.submittedAt = null; S.justSubmitted = false; await persistNow(); render(); break;
+    case 'viewForm': S.view = 'survey'; S.step = REVIEW; history.pushState(null, '', '#/surveys'); render(); window.scrollTo(0,0); break;
+    case 'reopen': S.record.status = 'DRAFT'; S.record.submittedAt = null; await persistNow(); render(); break;
     case 'pdf': await persistNow(); makePdf(S.answers); break;
     case 'csv': await persistNow(); await shareOrDownload(toCsv([S.record]), (S.answers.jobRef || 'survey') + '.csv', 'text/csv'); break;
 
@@ -2301,10 +2301,10 @@ async function adminSignOut(){
 
 window.addEventListener('hashchange', () => {
   if (S.record) persist();
-  S.justSubmitted = false;
   const r = currentRoute();
   if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; loadList(); }
   else if (r === 'admin'){ adminChecking = true; renderAdmin(); }
+  else if (r === 'submitted' && S.record){ render(); }
   else render();
 });
 window.addEventListener('online', () => syncPending());
@@ -2317,13 +2317,14 @@ window.addEventListener('orientationchange', () => setTimeout(() => { syncSticky
 function openSurvey(rec){
   S.record = rec;
   S.answers = Object.assign(emptyAnswers(), rec.answers || {});
-  S.step = 0; S.showMissing = false; S.justSubmitted = false; S.view = 'survey';
+  S.step = 0; S.showMissing = false; S.view = 'survey';
   render(); window.scrollTo(0,0);
 }
 function currentRoute(){
   const h = location.hash.replace(/^#/, '');
   if (h === '/surveys') return 'surveys';
   if (h === '/admin') return 'admin';
+  if (h === '/submitted') return 'submitted';
   return 'home';
 }
 function renderHome(){
@@ -2426,7 +2427,7 @@ function render(){
   const r = currentRoute();
   if (r === 'home') return renderHome();
   if (r === 'admin') return renderAdmin();
-  if (S.justSubmitted && S.view === 'survey' && S.record) return renderConfirmation();
+  if (r === 'submitted' && S.record) return renderConfirmation();
   (S.view === 'survey' && S.record) ? renderSurvey() : renderList();
 }
 
