@@ -492,6 +492,34 @@ body.modal-open{ overflow:hidden }
 .srow-ref{font-size:17px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;line-height:1.2}
 .srow-site{display:block;font-size:15px;font-weight:400;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;line-height:1.3}
 .srow-meta{display:block;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;line-height:1.3}
+
+.srow-check{flex:0 0 24px;width:24px;height:24px;border-radius:6px;border:2px solid var(--line);
+  background:var(--card);margin:0 12px 0 0;cursor:pointer;flex-shrink:0;display:none;
+  align-items:center;justify-content:center;transition:background 150ms ease,border-color 150ms ease}
+.srow-check.checked{background:var(--primary);border-color:var(--primary)}
+.srow-check.checked svg{display:block}
+.srow-check svg{display:none;width:16px;height:16px;color:#fff}
+.srow.select .srow-check{display:flex}
+.srow.select .srow-actions{display:none}
+.srow.select .srow-main{cursor:pointer}
+.srow.select{cursor:pointer}
+
+.list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:620px;margin:0 auto 0;padding-bottom:10px;flex:0 0 auto}
+.list-toolbar .filters{margin:0;padding-bottom:0}
+.list-select-btn{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);
+  background:var(--card);color:var(--slate);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.list-select-btn:active{background:var(--primary-soft)}
+
+.bulk-bar{display:flex;align-items:center;gap:10px;max-width:620px;margin:0 auto}
+.bulk-count{flex:1 1 auto;font-size:14px;font-weight:600;color:var(--ink);min-width:0}
+.bulk-btn{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);
+  background:var(--card);color:var(--slate);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.bulk-btn:active{background:var(--primary-soft)}
+.bulk-btn.danger{color:var(--danger);border-color:var(--danger)}
+.bulk-btn.danger:disabled{color:var(--muted);border-color:var(--line);opacity:.5;cursor:default}
+
+.bulk-feedback{font-size:12.5px;color:var(--muted);margin:8px auto 0;max-width:620px;text-align:center}
+
 .blank{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   padding:64px 20px;grid-column:1/-1;min-height:50dvh}
 .blank-logo{height:96px;width:auto;margin:0 0 20px}
@@ -919,7 +947,8 @@ const STORAGE_LABEL = {
 /* ================================================================
    Application state
    ================================================================ */
-const S = { view:'list', filter:'ALL', records:[], record:null, answers:null, step:0, showMissing:false, saving:false };
+const S = { view:'list', filter:'ALL', records:[], record:null, answers:null, step:0, showMissing:false, saving:false,
+  selectMode:false, selectedIds:new Set(), bulkFeedback:null, bulkFeedbackTimer:null };
 const REVIEW = SECTIONS.length;
 let saveTimer = null;
 
@@ -1153,6 +1182,8 @@ function renderList(){
   const recs = S.records.filter(r => S.filter === 'ALL' ? true : r.status === S.filter);
   const drafts = S.records.filter(r => r.status === 'DRAFT').length;
   const done = S.records.filter(r => r.status === 'SUBMITTED').length;
+  const sel = S.selectedIds;
+  const allVisibleSelected = recs.length > 0 && recs.every(r => sel.has(r.id));
 
   app.innerHTML = `
   <header class="topbar"><div class="wrap topbar-row topbar-list">
@@ -1165,10 +1196,13 @@ function renderList(){
     <button class="linkbtn" data-act="menu">Menu</button>
   </div></header>
   <main class="wrap">
-    <div class="filters" role="group" aria-label="Filter surveys">
-      <button data-act="filter" data-v="ALL" aria-pressed="${S.filter==='ALL'}">All ${S.records.length}</button>
-      <button data-act="filter" data-v="DRAFT" aria-pressed="${S.filter==='DRAFT'}">Drafts ${drafts}</button>
-      <button data-act="filter" data-v="SUBMITTED" aria-pressed="${S.filter==='SUBMITTED'}">Submitted ${done}</button>
+    <div class="list-toolbar">
+      <div class="filters" role="group" aria-label="Filter surveys">
+        <button data-act="filter" data-v="ALL" aria-pressed="${S.filter==='ALL'}">All ${S.records.length}</button>
+        <button data-act="filter" data-v="DRAFT" aria-pressed="${S.filter==='DRAFT'}">Drafts ${drafts}</button>
+        <button data-act="filter" data-v="SUBMITTED" aria-pressed="${S.filter==='SUBMITTED'}">Submitted ${done}</button>
+      </div>
+      <button class="list-select-btn" data-act="${S.selectMode ? 'cancelSelect' : 'startSelect'}">${S.selectMode ? 'Cancel' : 'Select'}</button>
     </div>
     ${Store.mode === 'memory' ? `<div class="banner danger"><b>This page cannot save anything</b>
       Your browser is blocking storage, which usually happens when the file is opened straight from Files or in private browsing.
@@ -1180,9 +1214,18 @@ function renderList(){
         ${S.filter === 'ALL' ? '<button class="btn" data-act="new">Start a new survey</button>' : ''}
       </div>`}
     </div>
-    ${Store.mode !== 'memory' ? `<p class="storagenote">Saved on this device and sent to the office.</p>` : ''}
+    ${S.bulkFeedback ? `<p class="bulk-feedback">${esc(S.bulkFeedback)}</p>` : ''}
+    ${Store.mode !== 'memory' && !S.selectMode ? `<p class="storagenote">Saved on this device and sent to the office.</p>` : ''}
   </main>
-  ${recs.length ? `<div class="bottombar"><div class="wrap"><div class="barinner list-bar"><button class="btn" data-act="new">Start a new survey</button></div></div></div>` : ''}`;
+  ${S.selectMode && recs.length
+    ? `<div class="bottombar"><div class="wrap"><div class="barinner list-bar"><div class="bulk-bar">
+        <span class="bulk-count">${sel.size} selected</span>
+        <button class="bulk-btn" data-act="selectAll">${allVisibleSelected ? 'Clear' : 'Select all'}</button>
+        <button class="bulk-btn danger" data-act="bulkDelete" ${sel.size === 0 ? 'disabled' : ''}>Delete</button>
+      </div></div></div></div>`
+    : (recs.length && !S.selectMode
+      ? `<div class="bottombar"><div class="wrap"><div class="barinner list-bar"><button class="btn" data-act="new">Start a new survey</button></div></div></div>`
+      : '')}`;
 }
 
 const PDF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>';
@@ -1196,11 +1239,19 @@ function rowHTML(r){
   if (r.surveyedBy) metaParts.push(r.surveyedBy);
   if (r.status === 'DRAFT') metaParts.push(pct + '% complete');
   const meta = metaParts.join(' · ');
+  const checked = S.selectedIds.has(r.id);
   const pdfSlot = r.status === 'SUBMITTED'
     ? `<button class="srow-act srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" title="Download PDF" aria-label="Download PDF">${PDF_ICON}</button>`
     : `<span class="srow-slot-empty" aria-hidden="true"></span>`;
-  return `<div class="srow">
-    <button class="srow-main" data-act="open" data-id="${esc(r.id)}">
+  const checkHTML = S.selectMode
+    ? `<span class="srow-check${checked ? ' checked' : ''}" data-act="toggle" data-id="${esc(r.id)}" role="checkbox" aria-checked="${checked}" aria-label="Select ${esc(name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg></span>`
+    : '';
+  const mainAttr = S.selectMode
+    ? `data-act="toggle" data-id="${esc(r.id)}"`
+    : `data-act="open" data-id="${esc(r.id)}"`;
+  return `<div class="srow${S.selectMode ? ' select' : ''}">
+    ${checkHTML}
+    <button class="srow-main" ${mainAttr}>
       <span class="srow-ref" title="${esc(jobRef)}">${esc(jobRef)}</span>
       <span class="srow-site" title="${esc(siteName)}">${esc(siteName)}</span>
       <span class="srow-meta" title="${esc(meta)}">${esc(meta)}</span>
@@ -2104,6 +2155,31 @@ async function deleteSurvey(id){
   return true;
 }
 
+async function bulkDelete(){
+  const ids = Array.from(S.selectedIds);
+  if (!ids.length) return;
+  const recs = [];
+  for (const id of ids){ const r = await Store.get(id); if (r) recs.push(r); }
+  if (!recs.length) return;
+  const unsent = recs.filter(r => r.status === 'SUBMITTED' && needsSync(r)).length;
+  const title = 'Delete ' + ids.length + ' survey' + (ids.length === 1 ? '?' : 's?');
+  let body = 'They are removed from this device and cannot be recovered. Any already sent to the office stay there.';
+  if (unsent > 0){
+    body += ' ' + unsent + ' of ' + (unsent === 1 ? 'these has' : 'these have') + ' not been sent yet. Deleting ' + (unsent === 1 ? 'it' : 'them') + ' here means the office never gets ' + (unsent === 1 ? 'it' : 'them') + '.';
+  }
+  const ok = await askConfirm({ title, body, confirmLabel:'Delete', cancelLabel:'Keep them', tone:'danger' });
+  if (!ok) return;
+  let count = 0;
+  for (const id of ids){ await Store.remove(id); count++; }
+  S.selectMode = false;
+  S.selectedIds.clear();
+  await loadList();
+  S.bulkFeedback = count + ' survey' + (count === 1 ? '' : 's') + ' deleted';
+  render();
+  clearTimeout(S.bulkFeedbackTimer);
+  S.bulkFeedbackTimer = setTimeout(() => { S.bulkFeedback = null; render(); }, 4000);
+}
+
 /* ================================================================
    Report, print to PDF
    ================================================================ */
@@ -2369,9 +2445,24 @@ app.addEventListener('click', async (e) => {
   const act = t.dataset.act, fid = t.dataset.f, v = t.dataset.v;
 
   switch (act){
-    case 'filter': S.filter = v; render(); break;
+    case 'filter': S.filter = v; S.selectedIds.clear(); S.selectMode = false; render(); break;
     case 'adminSignOut': await adminSignOut(); break;
     case 'del': await deleteSurvey(t.dataset.id); break;
+    case 'startSelect': S.selectMode = true; S.selectedIds.clear(); render(); break;
+    case 'cancelSelect': S.selectMode = false; S.selectedIds.clear(); render(); break;
+    case 'toggle': {
+      const id = t.dataset.id;
+      if (S.selectedIds.has(id)) S.selectedIds.delete(id); else S.selectedIds.add(id);
+      render(); break;
+    }
+    case 'selectAll': {
+      const recs = S.records.filter(r => S.filter === 'ALL' ? true : r.status === S.filter);
+      const allSelected = recs.length > 0 && recs.every(r => S.selectedIds.has(r.id));
+      if (allSelected) { recs.forEach(r => S.selectedIds.delete(r.id)); }
+      else { recs.forEach(r => S.selectedIds.add(r.id)); }
+      render(); break;
+    }
+    case 'bulkDelete': await bulkDelete(); break;
     case 'listpdf': e.stopPropagation(); { const rec = await Store.get(t.dataset.id); if (rec) makePdf(rec.answers || {}); break; }
     case 'emailoffice': emailToOffice(); break;
     case 'menu': openMenu(); break;
@@ -2626,7 +2717,7 @@ function handleRouteChange(){
   stopSignInAnimation();
   if (S.record) persist();
   const r = currentRoute();
-  if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; loadList(); }
+  if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; S.selectMode = false; S.selectedIds.clear(); loadList(); }
   else if (r === 'admin'){ adminChecking = true; renderAdmin(); }
   else if (r === 'submitted' && S.record){ render(); }
   else render();
