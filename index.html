@@ -79,7 +79,14 @@ button{font:inherit;color:inherit}
 .brand-back{display:flex;align-items:center;background:none;border:0;padding:0;cursor:pointer;min-height:44px}
 .topbar-title{font-size:20px;line-height:1.2;margin:0;font-weight:600;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
 @media (min-width:768px){ .topbar-title{font-size:22px} }
-@media (max-width:479px){ .topbar-brand{flex-wrap:wrap;gap:6px} .topbar-div{display:none} .brand{height:32px} .topbar-title{font-size:18px} }
+.topbar-title.title-trunc{cursor:pointer}
+@media (max-width:599px){
+  .topbar-brand{display:contents}
+  .topbar-div{display:none}
+  .topbar-title{flex:1 1 0;min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  h2.topbar-title{font-size:17px}
+}
+@media (max-width:479px){ .brand{height:32px} }
 a.linkbtn{text-decoration:none}
 .sidenav-back{display:block;margin-bottom:16px}
 h1{font-size:24px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
@@ -490,7 +497,7 @@ body.modal-open{ overflow:hidden }
 .boot .bar i{position:absolute;inset:0;border-radius:99px;transform-origin:left;
   transform:scaleX(0);
   background:linear-gradient(90deg,var(--primary) 0 78%,#ED1C24 100%);
-  animation:bootfill 620ms cubic-bezier(.22,1,.36,1) forwards}
+  animation:bootfill 850ms cubic-bezier(.22,1,.36,1) forwards}
 @keyframes bootfill{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
 .boot.done{opacity:0;transition:opacity 160ms ease}
 @media (prefers-reduced-motion:reduce){
@@ -526,6 +533,7 @@ body.modal-open{ overflow:hidden }
 <input type="file" id="restorein" accept="application/json,.json" hidden>
 <script>
 "use strict";
+const bootStart = performance.now();
 const SUPABASE_URL = "%VITE_SUPABASE_URL%";
 const SUPABASE_ANON_KEY = "%VITE_SUPABASE_ANON_KEY%";
 
@@ -1028,7 +1036,7 @@ function renderList(){
     <div class="topbar-brand">
       <img class="brand" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
       <span class="topbar-div"></span>
-      <h1 class="topbar-title">Site surveys</h1>
+      <h1 class="topbar-title list-title">Site surveys</h1>
     </div>
     <span class="syncstate"></span>
     <button class="linkbtn" data-act="menu">Menu</button>
@@ -1141,6 +1149,7 @@ function renderSurvey(){
 
   setupCanvases();
   syncStickyOffsets();
+  checkTitleTruncation();
   const cur = $('.steps .step[aria-current="step"]');
   if (cur && cur.scrollIntoView) cur.scrollIntoView({ block:'nearest', inline:'center' });
 }
@@ -1894,6 +1903,39 @@ confirmDlg.addEventListener('close', () => {
   if (done) done(confirmDlg.returnValue === 'yes');
 });
 
+function checkTitleTruncation(){
+  const el = document.querySelector('h2.topbar-title');
+  if (!el) return;
+  if (el.scrollWidth > el.clientWidth){
+    el.setAttribute('data-act','titleinfo');
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.setAttribute('aria-expanded','false');
+    el.classList.add('title-trunc');
+  } else {
+    el.removeAttribute('data-act');
+    el.removeAttribute('role');
+    el.removeAttribute('tabindex');
+    el.removeAttribute('aria-expanded');
+    el.classList.remove('title-trunc');
+  }
+}
+
+function showTitleDialog(){
+  const a = S.answers;
+  confirmDlg.innerHTML = `<div class="confirmbox">
+    <h3>${esc(a.jobRef || 'No job reference')}</h3>
+    <p>${esc(a.siteName || 'Site not set')}</p>
+    <div class=\"row\"><button class=\"btn\" data-c=\"0\">Close</button></div>
+  </div>`;
+  const titleEl = document.querySelector('h2.topbar-title');
+  if (titleEl) titleEl.setAttribute('aria-expanded','true');
+  openDialog(confirmDlg);
+  confirmDlg.addEventListener('close', () => {
+    if (titleEl) titleEl.setAttribute('aria-expanded','false');
+  }, { once:true });
+}
+
 /* Shared by the list and by an open survey. */
 /**
  * Deleting is the one action here that cannot be undone, so it always asks, it
@@ -2137,6 +2179,7 @@ app.addEventListener('click', async (e) => {
     case 'del': await deleteSurvey(t.dataset.id); break;
     case 'emailoffice': emailToOffice(); break;
     case 'menu': openMenu(); break;
+    case 'titleinfo': showTitleDialog(); break;
     case 'new': {
       const starting = emptyAnswers();
       starting._touched = [];
@@ -2319,7 +2362,7 @@ window.addEventListener('hashchange', () => {
   else render();
 });
 window.addEventListener('online', () => syncPending());
-window.addEventListener('resize', () => { syncStickyOffsets(); resizeCanvases(); }, { passive:true });
+window.addEventListener('resize', () => { syncStickyOffsets(); resizeCanvases(); checkTitleTruncation(); }, { passive:true });
 window.addEventListener('orientationchange', () => setTimeout(() => { syncStickyOffsets(); resizeCanvases(); }, 250));
 
 /* ================================================================
@@ -2449,12 +2492,16 @@ function boot(){
     r = 'home';
   }
   const bootEl = document.getElementById('boot');
-  bootEl.classList.add('done');
+  const elapsed = performance.now() - bootStart;
+  const hold = Math.max(0, 1000 - elapsed);
   setTimeout(() => {
-    bootEl.remove();
-    render();
-    app.style.visibility = 'visible';
-  }, 160);
+    bootEl.classList.add('done');
+    setTimeout(() => {
+      bootEl.remove();
+      render();
+      app.style.visibility = 'visible';
+    }, 160);
+  }, hold);
   Store.init().then(() => loadList()).then(() => syncPending()).catch(err => {
     app.innerHTML = `<div class="boot-fatal">
       <img class="boot-fatal-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
