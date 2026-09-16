@@ -119,6 +119,7 @@ main{flex:1;padding-block:var(--pad) 28px}
 .linkbtn{background:none;border:0;padding:8px 0;min-height:44px;color:var(--primary);font-weight:600;
   font-size:15px;cursor:pointer;white-space:nowrap}
 .linkbtn.warn{color:var(--danger)}
+a.btn{text-decoration:none;color:#fff}
 
 /* ---------- cards, banners, progress ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--pad);margin-bottom:14px}
@@ -141,6 +142,27 @@ main{flex:1;padding-block:var(--pad) 28px}
 .pill.SAMPLE{background:var(--amber-soft);color:var(--amber)}
 .pill.NOT-SENT{background:var(--amber-soft);color:var(--amber)}
 .pill.SENT{background:var(--success-soft);color:var(--success)}
+
+/* ---------- homepage ---------- */
+.home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center}
+.home-logo{height:56px;width:auto;margin:0 0 20px}
+@media (min-width:768px){ .home-logo{height:64px} }
+.home-lead{font-size:17px;color:var(--muted);margin:0 0 32px;max-width:420px;line-height:1.5}
+.home-actions{display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px}
+.home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
+
+/* ---------- admin sign in ---------- */
+.admin-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--pad);width:100%;max-width:380px;margin:0 auto;text-align:left}
+.admin-card h1{margin:0 0 4px;text-align:center}
+.admin-card .sub{text-align:center;margin:0 0 20px}
+.admin-card .field{margin-bottom:16px}
+.admin-card label{display:block;font-size:15px;font-weight:600;color:var(--slate);margin-bottom:6px}
+.admin-card input{width:100%;min-height:var(--tap);padding:12px;border:1.5px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);font-size:16px}
+.admin-card input:focus{border-color:var(--primary);outline:none}
+.admin-err{font-size:14px;color:var(--danger);margin:0 0 14px;min-height:18px;text-align:center}
+.admin-info{font-size:14px;color:var(--muted);margin:0 0 14px;text-align:center}
+.admin-signed{font-size:14px;color:var(--muted);margin:0 0 20px;text-align:center}
+.admin-signed b{color:var(--ink)}
 
 /* ---------- step strip (narrow) ---------- */
 .steps{display:flex;gap:8px;overflow-x:auto;padding-block:10px 12px;background:var(--paper);
@@ -2048,6 +2070,7 @@ app.addEventListener('click', async (e) => {
 
   switch (act){
     case 'filter': S.filter = v; render(); break;
+    case 'adminSignOut': await adminSignOut(); break;
     case 'del': await deleteSurvey(t.dataset.id); break;
     case 'findpostcode': await findPostcode(); break;
     case 'emailoffice': emailToOffice(); break;
@@ -2151,6 +2174,76 @@ app.addEventListener('change', (e) => {
 });
 
 window.addEventListener('beforeunload', () => { if (S.record) persist(); });
+
+app.addEventListener('submit', async (e) => {
+  if (e.target.id !== 'adminSignIn') return;
+  e.preventDefault();
+  await adminSignIn();
+});
+
+async function adminSignIn(){
+  const emailEl = document.getElementById('adminEmail');
+  const passEl = document.getElementById('adminPass');
+  const email = (emailEl && emailEl.value || '').trim();
+  const pass = (passEl && passEl.value) || '';
+  if (!email || !pass){ adminErr = 'Enter your email and password.'; renderAdmin(); return; }
+  const btn = document.querySelector('#adminSignIn button[type=submit]');
+  if (btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
+  adminErr = '';
+  try {
+    if (!sbClient){ adminErr = 'Cannot reach the server. Check your connection and try again.'; renderAdmin(); return; }
+    const { data: existing } = await sbClient.auth.getSession();
+    if (existing && existing.session && await isAnonymous(existing.session)){
+      const recs = await Store.all();
+      const unsent = recs.filter(r => r.status === 'SUBMITTED' && needsSync(r)).length;
+      if (unsent > 0){
+        adminErr = 'This phone has ' + unsent + ' survey' + (unsent === 1 ? '' : 's') + ' still to send. Sync them first from the Menu.';
+        renderAdmin();
+        return;
+      }
+      await sbClient.auth.signOut();
+    }
+    const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
+    if (error || !data.user){
+      adminErr = (error && error.message) || 'Sign in failed. Check your email and password.';
+      try { await sbClient.auth.signInAnonymously(); } catch(e){}
+      renderAdmin();
+      return;
+    }
+    const ok = await checkOfficeAccess(data.user.id);
+    if (!ok){
+      await sbClient.auth.signOut();
+      adminErr = 'This account does not have office access.';
+      try { await sbClient.auth.signInAnonymously(); } catch(e){}
+      renderAdmin();
+      return;
+    }
+    adminEmail = data.user.email || email;
+    adminErr = '';
+    renderAdmin();
+  } catch(e){
+    adminErr = 'Something went wrong. Try again.';
+    try { await sbClient.auth.signInAnonymously(); } catch(e2){}
+    renderAdmin();
+  }
+}
+
+async function adminSignOut(){
+  if (!sbClient){ location.hash = '#/'; return; }
+  try { await sbClient.auth.signOut(); } catch(e){}
+  adminEmail = null;
+  adminErr = '';
+  try { await sbClient.auth.signInAnonymously(); } catch(e){}
+  location.hash = '#/';
+}
+
+window.addEventListener('hashchange', () => {
+  if (S.record) persist();
+  const r = currentRoute();
+  if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; loadList(); }
+  else if (r === 'admin'){ adminChecking = true; renderAdmin(); }
+  else render();
+});
 window.addEventListener('online', () => syncPending());
 window.addEventListener('resize', () => { syncStickyOffsets(); resizeCanvases(); }, { passive:true });
 window.addEventListener('orientationchange', () => setTimeout(() => { syncStickyOffsets(); resizeCanvases(); }, 250));
@@ -2164,10 +2257,111 @@ function openSurvey(rec){
   S.step = 0; S.showMissing = false; S.view = 'survey';
   render(); window.scrollTo(0,0);
 }
-function render(){ (S.view === 'survey' && S.record) ? renderSurvey() : renderList(); }
+function currentRoute(){
+  const h = location.hash.replace(/^#/, '');
+  if (h === '/surveys') return 'surveys';
+  if (h === '/admin') return 'admin';
+  return 'home';
+}
+function renderHome(){
+  app.innerHTML = `
+  <div class="home">
+    <img class="home-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+    <p class="home-lead">Site surveys that work on site, with or without signal.</p>
+    <div class="home-actions">
+      <a class="btn" href="#/surveys">Start a survey</a>
+      <a class="btn secondary" href="#/admin">Office sign in</a>
+    </div>
+  </div>`;
+}
+let adminChecking = true;
+let adminEmail = null;
+let adminErr = '';
+
+async function isAnonymous(session){
+  if (!session || !session.user) return true;
+  const meta = session.user.user_metadata || {};
+  const amr = session.user.app_metadata || {};
+  return !!(meta.is_anonymous || amr.is_anonymous || meta.provider === 'anonymous');
+}
+
+async function checkOfficeAccess(uid){
+  if (!sbClient) return false;
+  const { data, error } = await sbClient.from('staff').select('is_office').eq('user_id', uid).maybeSingle();
+  if (error) return false;
+  return !!(data && data.is_office);
+}
+
+async function renderAdmin(){
+  if (adminChecking){
+    app.innerHTML = `<div class="home"><p class="home-lead">Checking…</p></div>`;
+    try {
+      if (!sbClient){ adminChecking = false; adminErr = 'Cannot reach the server. Check your connection and try again.'; return renderAdmin(); }
+      const { data: sd } = await sbClient.auth.getSession();
+      const session = sd && sd.session;
+      if (!session || await isAnonymous(session)){
+        adminChecking = false; adminErr = ''; return renderAdmin();
+      }
+      const uid = session.user.id;
+      adminEmail = session.user.email || '';
+      const ok = await checkOfficeAccess(uid);
+      if (!ok){
+        await sbClient.auth.signOut();
+        adminEmail = null;
+        adminChecking = false;
+        adminErr = 'This account does not have office access.';
+        try { await sbClient.auth.signInAnonymously(); } catch(e){}
+        return renderAdmin();
+      }
+      adminChecking = false; adminErr = '';
+      return renderAdmin();
+    } catch(e){
+      adminChecking = false; adminErr = 'Something went wrong. Try again.'; return renderAdmin();
+    }
+  }
+
+  if (!adminEmail){
+    app.innerHTML = `
+    <div class="home">
+      <h1>Office</h1>
+      <form id="adminSignIn" class="admin-card">
+        <p class="sub">Sign in with your office account.</p>
+        <div class="field">
+          <label for="adminEmail">Email</label>
+          <input id="adminEmail" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="adminPass">Password</label>
+          <input id="adminPass" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="admin-err">${esc(adminErr)}</p>
+        <button type="submit" class="btn">Sign in</button>
+      </form>
+      <a class="btn secondary home-back" href="#/">Back to start</a>
+    </div>`;
+    return;
+  }
+
+  app.innerHTML = `
+  <div class="home">
+    <h1>Office</h1>
+    <p class="admin-signed">Signed in as <b>${esc(adminEmail)}</b></p>
+    <div class="home-actions">
+      <button class="btn danger" data-act="adminSignOut">Sign out</button>
+    </div>
+    <a class="btn secondary home-back" href="#/">Back to start</a>
+  </div>`;
+}
+function render(){
+  const r = currentRoute();
+  if (r === 'home') return renderHome();
+  if (r === 'admin') return renderAdmin();
+  (S.view === 'survey' && S.record) ? renderSurvey() : renderList();
+}
 
 (async function boot(){
   try {
+    if (!location.hash || location.hash === '#') history.replaceState(null, '', '#/');
     await Store.init();
     await loadList();
     syncPending();
