@@ -2099,15 +2099,29 @@ function panelsTable(panels){
       <td>${esc(p.quantity)}</td><td>${esc(p.shape)}</td><td>${esc(p.notes)}</td></tr>`).join('')}</tbody></table>`;
 }
 
-function buildReport(a){
-  const secs = [], photoBlocks = [];
+/* Resolve a photo source to a URL that an <img> can load.
+   On the device, photo.uri is a data URL. If a survey was loaded from the
+   office, photo.uri may be a Storage path instead. */
+async function resolvePhotoSrc(src){
+  if (!src) return '';
+  if (src.startsWith('data:') || src.startsWith('http:') || src.startsWith('https:')) return src;
+  if (!sbClient) return '';
+  try {
+    const { data, error } = await sbClient.storage
+      .from('survey-photos').createSignedUrl(src, 600);
+    if (error || !data || !data.signedUrl) return '';
+    return data.signedUrl;
+  } catch(e){ return ''; }
+}
+
+async function buildReport(a){
+  const secs = [], photoEntries = [];
   SECTIONS.forEach(sec => {
     const fields = [];
     visibleFields(sec, a).forEach(f => {
       const v = a[f.id];
       if (f.type === 'photos'){
-        arr(v).forEach(p => photoBlocks.push(
-          `<figure><img src="${p.uri}" alt=""><figcaption>${esc(p.caption || '')}</figcaption></figure>`));
+        arr(v).forEach(p => photoEntries.push({ label:f.label, photo:p }));
         return;
       }
       if (f.type === 'signature') return;
@@ -2145,6 +2159,15 @@ function buildReport(a){
     }
   });
 
+  const resolvedPhotos = await Promise.all(photoEntries.map(async ({ label, photo }) => {
+    const src = await resolvePhotoSrc(photo.uri);
+    const caption = photo.caption || label;
+    return { src, caption };
+  }));
+
+  const photoBlocks = resolvedPhotos.map(p =>
+    `<figure><img data-rp="1" src="${esc(p.src)}" alt="${esc(p.caption)}"><figcaption>${esc(p.caption)}</figcaption></figure>`);
+
   const surveyor = a.surveyedBy === 'Other (type name)' ? a.surveyedByOther : a.surveyedBy;
   const sample = !!(S.record && S.record.sample);
   const jobRef = a.jobRef || '';
@@ -2167,10 +2190,30 @@ function buildReport(a){
     ${photoBlocks.length ? `<div class="photos-section"><h2>Photographs</h2><div class="pgrid">${photoBlocks.join('')}</div></div>` : ''}`;
 }
 
-function makePdf(a){
-  buildReport(a);
+const PLACEHOLDER_SVG = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150">' +
+  '<rect width="200" height="150" fill="#F5F7F6" stroke="#D3DBDC"/>' +
+  '<text x="100" y="75" text-anchor="middle" dominant-baseline="middle" ' +
+  'font-family="sans-serif" font-size="10" fill="#6B7C85">Photograph could not be loaded</text></svg>');
+
+function waitForReportImages(){
+  const imgs = document.querySelectorAll('#report img[data-rp="1"]');
+  return Promise.all(Array.from(imgs).map(img => new Promise(resolve => {
+    if (img.complete && img.naturalWidth > 0){ resolve(); return; }
+    img.addEventListener('load', () => resolve(), { once:true });
+    img.addEventListener('error', () => {
+      img.src = PLACEHOLDER_SVG;
+      img.removeAttribute('data-rp');
+      resolve();
+    }, { once:true });
+  })));
+}
+
+async function makePdf(a){
+  await buildReport(a);
   document.getElementById('report').setAttribute('data-jobref', a.jobRef || '');
   document.title = 'GG Survey ' + (a.jobRef || '') + ' ' + (a.siteName || '');
+  await waitForReportImages();
   setTimeout(() => { window.print(); setTimeout(() => { document.title = 'GG Survey'; }, 400); }, 60);
 }
 
