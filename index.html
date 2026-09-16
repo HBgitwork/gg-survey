@@ -161,6 +161,21 @@ a.btn{text-decoration:none;color:#fff}
 .home-signin{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--steel);text-decoration:none;min-height:52px}
 .home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
 
+/* ---------- confirmation screen ---------- */
+.confirm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:var(--pad) 15vh;text-align:center;min-height:100dvh}
+.confirm-tick{width:64px;height:64px;border-radius:50%;background:var(--success-soft);
+  display:flex;align-items:center;justify-content:center;margin:0 0 20px}
+.confirm-tick svg{width:32px;height:32px}
+.confirm h1{font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin:0 0 6px}
+@media (min-width:768px){ .confirm h1{font-size:28px} }
+.confirm-ref{font-size:16px;font-weight:600;color:var(--slate);margin:0 0 2px}
+.confirm-site{font-size:15px;color:var(--muted);margin:0 0 16px}
+.confirm-send{font-size:14px;color:var(--muted);margin:0 0 28px;max-width:380px;line-height:1.5}
+.confirm-actions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:380px}
+.confirm-home{margin-top:18px;color:var(--primary);text-decoration:none;font-size:15px;font-weight:600;min-height:44px;
+  display:flex;align-items:center;justify-content:center}
+
 /* ---------- admin sign in ---------- */
 .admin-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--pad);width:100%;max-width:420px;margin:0 auto;text-align:left;
   box-shadow:0 2px 8px -2px rgba(14,20,23,0.07)}
@@ -748,7 +763,7 @@ const STORAGE_LABEL = {
 /* ================================================================
    Application state
    ================================================================ */
-const S = { view:'list', filter:'ALL', records:[], record:null, answers:null, step:0, showMissing:false, saving:false, lookupMsg:'' };
+const S = { view:'list', filter:'ALL', records:[], record:null, answers:null, step:0, showMissing:false, saving:false, lookupMsg:'', justSubmitted:false };
 const REVIEW = SECTIONS.length;
 let saveTimer = null;
 
@@ -1106,6 +1121,29 @@ function renderSurvey(){
   syncStickyOffsets();
   const cur = $('.steps .step[aria-current="step"]');
   if (cur && cur.scrollIntoView) cur.scrollIntoView({ block:'nearest', inline:'center' });
+}
+
+function renderConfirmation(){
+  const rec = S.record, a = S.answers;
+  const st = syncState(rec);
+  const sendLine = st === 'SENT'
+    ? 'Sent to the office.'
+    : 'Saved on this phone. It will go to the office on its own as soon as you have signal.';
+  const TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+  app.innerHTML = `
+  <div class="confirm">
+    <div class="confirm-tick" style="color:var(--success)">${TICK}</div>
+    <h1>Survey submitted</h1>
+    <p class="confirm-ref">${esc(a.jobRef || 'No job reference')}</p>
+    <p class="confirm-site">${esc(a.siteName || 'Site not set')}</p>
+    <p class="confirm-send">${esc(sendLine)}</p>
+    <div class="confirm-actions">
+      <button class="btn" data-act="pdf">Download PDF</button>
+      <button class="btn secondary" data-act="viewForm">View the form</button>
+      <a class="btn secondary" href="#/surveys">Site surveys</a>
+    </div>
+    <a class="confirm-home" href="#/">&lsaquo; Home</a>
+  </div>`;
 }
 
 function footerHTML(sec, miss, submitted){
@@ -2130,11 +2168,13 @@ app.addEventListener('click', async (e) => {
         confirmLabel:'Submit', cancelLabel:'Not yet' });
       if (!go) break;
       S.record.status = 'SUBMITTED'; S.record.submittedAt = new Date().toISOString();
-      await persistNow(); render();
-      await syncOne(S.record); render(); syncPending();
+      await persistNow();
+      await syncOne(S.record); syncPending();
+      S.justSubmitted = true; S.step = REVIEW; render(); window.scrollTo(0,0);
       break;
     }
-    case 'reopen': S.record.status = 'DRAFT'; S.record.submittedAt = null; await persistNow(); render(); break;
+    case 'viewForm': S.justSubmitted = false; S.step = REVIEW; render(); window.scrollTo(0,0); break;
+    case 'reopen': S.record.status = 'DRAFT'; S.record.submittedAt = null; S.justSubmitted = false; await persistNow(); render(); break;
     case 'pdf': await persistNow(); makePdf(S.answers); break;
     case 'csv': await persistNow(); await shareOrDownload(toCsv([S.record]), (S.answers.jobRef || 'survey') + '.csv', 'text/csv'); break;
 
@@ -2260,6 +2300,7 @@ async function adminSignOut(){
 
 window.addEventListener('hashchange', () => {
   if (S.record) persist();
+  S.justSubmitted = false;
   const r = currentRoute();
   if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; loadList(); }
   else if (r === 'admin'){ adminChecking = true; renderAdmin(); }
@@ -2275,7 +2316,7 @@ window.addEventListener('orientationchange', () => setTimeout(() => { syncSticky
 function openSurvey(rec){
   S.record = rec;
   S.answers = Object.assign(emptyAnswers(), rec.answers || {});
-  S.step = 0; S.showMissing = false; S.view = 'survey';
+  S.step = 0; S.showMissing = false; S.justSubmitted = false; S.view = 'survey';
   render(); window.scrollTo(0,0);
 }
 function currentRoute(){
@@ -2384,6 +2425,7 @@ function render(){
   const r = currentRoute();
   if (r === 'home') return renderHome();
   if (r === 'admin') return renderAdmin();
+  if (S.justSubmitted && S.view === 'survey' && S.record) return renderConfirmation();
   (S.view === 'survey' && S.record) ? renderSurvey() : renderList();
 }
 
