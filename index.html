@@ -426,26 +426,34 @@ body.modal-open{ overflow:hidden }
 .filters button{flex:0 0 auto;min-height:42px;padding:0 15px;border-radius:var(--r);border:1px solid var(--line);
   background:var(--card);color:var(--steel);font-size:14px;font-weight:500;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
-.srows{display:grid;grid-template-columns:1fr;gap:14px;max-width:620px;margin:0 auto}
+.srows{display:grid;grid-template-columns:1fr;gap:10px;max-width:620px;margin:0 auto}
 .srow{position:relative;display:block;background:var(--card);border:1px solid var(--line);
-  border-radius:var(--r-lg);overflow:hidden;box-shadow:0 2px 8px -2px rgba(14,20,23,0.07);
+  border-radius:12px;overflow:hidden;box-shadow:0 1px 3px -1px rgba(14,20,23,0.06);
   transition:box-shadow 150ms ease,border-color 150ms ease}
-.srow:hover{box-shadow:0 4px 12px -2px rgba(14,20,23,0.10)}
-.srow-main{display:block;width:100%;text-align:left;background:none;border:0;padding:var(--pad);cursor:pointer}
+.srow:hover{box-shadow:0 2px 6px -2px rgba(14,20,23,0.08)}
+.srow-main{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 16px;cursor:pointer}
 .srow-main:active{background:var(--primary-soft)}
 .srow-del{position:absolute;top:0;right:0;display:flex;align-items:center;justify-content:center;
-  width:52px;height:52px;background:none;border:0;color:var(--muted);cursor:pointer;
-  border-radius:0 var(--r-lg) 0 8px;z-index:1}
+  width:44px;height:44px;background:none;border:0;color:var(--muted);cursor:pointer;
+  border-radius:0 12px 0 8px;z-index:1}
 .srow-del:hover{color:var(--danger);background:var(--danger-soft)}
 .srow-del svg{width:18px;height:18px;flex:0 0 auto}
+.srow-pdf{position:absolute;top:0;right:44px;display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;background:none;border:0;color:var(--primary);cursor:pointer;
+  border-radius:0;z-index:1}
+.srow-pdf:hover{background:var(--primary-soft)}
+.srow-pdf svg{width:18px;height:18px;flex:0 0 auto}
+.srow-pdf span{font-size:12px;font-weight:600;margin-left:4px}
 @media (pointer:fine){
-  .srow-del{opacity:0;transition:opacity 150ms ease}
-  .srow:hover .srow-del,.srow-del:focus-visible{opacity:1}
+  .srow-del,.srow-pdf{opacity:0;transition:opacity 150ms ease}
+  .srow:hover .srow-del,.srow-del:focus-visible,
+  .srow:hover .srow-pdf,.srow-pdf:focus-visible{opacity:1}
 }
-.srow-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;padding-right:44px}
+.srow-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px;padding-right:52px}
+.srow.has-pdf .srow-top{padding-right:104px}
 .srow-pills{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
 .srow-ref{font-size:20px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;line-height:1.2}
-.srow-site{display:block;font-size:15px;color:var(--slate);margin-bottom:4px}
+.srow-site{display:block;font-size:15px;color:var(--slate);margin-bottom:1px}
 .srow-meta{display:block;font-size:13px;color:var(--muted)}
 .blank{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   padding:64px 20px;grid-column:1/-1;min-height:50vh}
@@ -524,18 +532,19 @@ body.modal-open{ overflow:hidden }
 }
 /* ---------- loader ---------- */
 #boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:28px;background:var(--paper)}
+  align-items:center;justify-content:center;gap:26px;background:var(--paper)}
 #boot img{width:170px;height:auto;display:block}
-#boot .boot-bar{width:170px;height:3px;border-radius:99px;background:var(--line);
-  overflow:hidden}
-#boot .boot-bar i{display:block;height:100%;width:100%;border-radius:99px;
-  transform-origin:left;transform:scaleX(0);
-  background:linear-gradient(90deg,var(--primary) 0 78%,#ED1C24 100%);
-  animation:bootfill 1600ms cubic-bezier(.22,1,.36,1) forwards}
-@keyframes bootfill{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+.boot-win{width:96px;height:96px;display:block}
+.boot-win .p{fill:var(--line);transition:fill 220ms ease}
+.boot-win .p.lit{fill:var(--primary)}
+.boot-msg{margin:0;font-size:14.5px;color:var(--muted);letter-spacing:.01em;
+  min-height:20px;transition:color 200ms ease}
+#boot.filled .boot-win .p{fill:#ED1C24}
+#boot.filled .boot-msg{color:var(--primary);font-weight:600}
 #boot.done{opacity:0;transition:opacity 220ms ease;pointer-events:none}
 @media (prefers-reduced-motion:reduce){
-  #boot .boot-bar i{animation:none;transform:scaleX(1)}
+  .boot-win .p{transition:none}
+  .boot-msg{transition:none}
   #boot.done{transition:opacity 220ms ease!important}
 }
 /* Fatal error screen, shown if the app cannot start. */
@@ -554,9 +563,19 @@ body.modal-open{ overflow:hidden }
 </style>
 </head>
 <body>
-<div id="boot">
+<div id="boot" role="status" aria-live="polite">
     <img src="data:image/png;base64,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" alt="GG Glass and Glazing">
-    <div class="boot-bar"><i></i></div>
+    <svg class="boot-win" viewBox="0 0 64 64" aria-hidden="true">
+      <rect class="p p1" x="19.6" y="19.6" width="10.1" height="10.1"/>
+      <rect class="p p2" x="34.3" y="19.6" width="10.1" height="10.1"/>
+      <rect class="p p3" x="34.3" y="34.3" width="10.1" height="10.1"/>
+      <rect class="p p4" x="19.6" y="34.3" width="10.1" height="10.1"/>
+      <g fill="none" stroke="var(--ink)" stroke-width="4.6">
+        <rect x="17.3" y="17.3" width="29.4" height="29.4" rx="3"/>
+        <path d="M32 15.6v32.8M15.6 32h32.8"/>
+      </g>
+    </svg>
+    <p class="boot-msg">Loading</p>
   </div>
 <div id="app">
 </div>
@@ -1098,10 +1117,16 @@ function renderList(){
   syncStickyOffsets();
 }
 
+const PDF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>';
+
 function rowHTML(r){
   const pct = overallProgress(r.answers || {}).pct;
   const name = r.jobRef || r.siteName || 'this survey';
-  return `<div class="srow">
+  const pdfBtn = r.status === 'SUBMITTED'
+    ? `<button class="srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" aria-label="PDF ${esc(name)}">${PDF_ICON}<span>PDF</span></button>`
+    : '';
+  return `<div class="srow${r.status === 'SUBMITTED' ? ' has-pdf' : ''}">
+    ${pdfBtn}
     <button class="srow-del" data-act="del" data-id="${esc(r.id)}" aria-label="Delete ${esc(name)}">${BIN_ICON}</button>
     <button class="srow-main" data-act="open" data-id="${esc(r.id)}">
       <span class="srow-top">
@@ -2212,6 +2237,7 @@ app.addEventListener('click', async (e) => {
     case 'filter': S.filter = v; render(); break;
     case 'adminSignOut': await adminSignOut(); break;
     case 'del': await deleteSurvey(t.dataset.id); break;
+    case 'listpdf': e.stopPropagation(); { const rec = await Store.get(t.dataset.id); if (rec) makePdf(rec.answers || {}); break; }
     case 'emailoffice': emailToOffice(); break;
     case 'menu': openMenu(); break;
     case 'titleinfo': showTitleDialog(); break;
@@ -2533,27 +2559,69 @@ function boot(){
     r = 'home';
   }
   const bootEl = document.getElementById('boot');
-  const elapsed = performance.now() - bootStart;
-  const hold = Math.max(0, 1800 - elapsed);
-  setTimeout(() => {
-    bootEl.classList.add('done');
+  const panes = bootEl.querySelectorAll('.boot-win .p');
+  const msgEl = bootEl.querySelector('.boot-msg');
+  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const MESSAGES = ['Loading', 'Opening your surveys', 'Almost there', 'Ready'];
+  const TIMES = [450, 900, 1350, 1800];
+  const stages = [false, false, false, false];
+  let lit = 0;
+  let finished = false;
+
+  function lightPane(i){
+    if (i < lit) return;
+    lit = i + 1;
+    panes[i].classList.add('lit');
+    msgEl.textContent = MESSAGES[i];
+  }
+  function finishBoot(){
+    if (finished) return;
+    finished = true;
+    msgEl.textContent = 'Ready';
+    bootEl.classList.add('filled');
+    const t1 = reduce ? 0 : 220;
+    const t2 = reduce ? 0 : 220;
     setTimeout(() => {
+      bootEl.classList.add('done');
+      setTimeout(() => {
+        bootEl.remove();
+        render();
+        app.style.visibility = 'visible';
+      }, t2);
+    }, t1);
+  }
+  function check(){
+    const elapsed = performance.now() - bootStart;
+    for (let i = lit; i < 4; i++){
+      if (stages[i] && elapsed >= TIMES[i]) lightPane(i);
+    }
+    if (lit < 4){
+      if (lit > 0 || stages[0]) msgEl.textContent = MESSAGES[Math.min(lit, 3)];
+    } else {
+      finishBoot();
+      return;
+    }
+  }
+
+  const interval = setInterval(check, 50);
+
+  stages[0] = true;
+
+  Store.init().then(() => { stages[1] = true; return loadList(); })
+    .then(() => { stages[2] = true; syncPending(); })
+    .then(() => { stages[3] = true; })
+    .catch(err => {
+      clearInterval(interval);
       bootEl.remove();
-      render();
       app.style.visibility = 'visible';
-    }, 220);
-  }, hold);
-  Store.init().then(() => loadList()).then(() => syncPending()).catch(err => {
-    bootEl.remove();
-    app.style.visibility = 'visible';
-    app.innerHTML = `<div class="boot-fatal">
-      <img class="boot-fatal-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
-      <h1>The app could not start</h1>
-      <p class="boot-fatal-lead">Nothing has been lost. Close the tab and open it again.</p>
-      <div class="boot-fatal-help"><p>If it keeps happening, send this line to Harry:</p>
-        <p><strong>${esc(String((err && err.message) || err))}</strong></p></div>
-    </div>`;
-  });
+      app.innerHTML = `<div class="boot-fatal">
+        <img class="boot-fatal-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
+        <h1>The app could not start</h1>
+        <p class="boot-fatal-lead">Nothing has been lost. Close the tab and open it again.</p>
+        <div class="boot-fatal-help"><p>If it keeps happening, send this line to Harry:</p>
+          <p><strong>${esc(String((err && err.message) || err))}</strong></p></div>
+      </div>`;
+    });
 }
 boot();
 </script>
