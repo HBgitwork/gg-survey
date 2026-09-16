@@ -53,15 +53,17 @@ button{font:inherit;color:inherit}
 #app{min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);visibility:hidden}
 #app > *{visibility:visible}
 .topbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line);
-  padding-block:max(env(safe-area-inset-top),10px) 10px}
+  padding-block:max(env(safe-area-inset-top),14px) 14px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand{display:block;height:44px;width:auto;margin:0 0 10px}
-@media (min-width:768px){ .brand{height:52px} }
-.markbtn{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;cursor:pointer;min-height:44px}
-.mark{height:26px;width:auto;display:block;flex:0 0 auto}
-@media (min-width:768px){ .mark{height:30px} }
+.brand{display:block;height:36px;width:auto;margin:0}
+@media (min-width:768px){ .brand{height:40px} }
+.topbar-brand{display:flex;align-items:center;gap:14px;min-width:0}
+.topbar-div{width:1px;align-self:stretch;background:var(--line-strong);margin-block:4px;flex:0 0 auto}
+.brand-back{display:flex;align-items:center;background:none;border:0;padding:0;cursor:pointer;min-height:44px}
+.topbar-title{font-size:20px;line-height:1.2;margin:0;font-weight:600;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+@media (min-width:768px){ .topbar-title{font-size:22px} }
+@media (max-width:479px){ .topbar-brand{flex-wrap:wrap;gap:6px} .topbar-div{display:none} .brand{height:32px} .topbar-title{font-size:18px} }
 .sidelogo{height:52px;width:auto;display:block;margin-bottom:22px}
-.blank .mark{height:44px;margin:0 auto 16px}
 h1{font-size:24px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .sub{font-size:14px;font-weight:400;color:var(--muted);margin:0}
@@ -1003,9 +1005,10 @@ function renderList(){
 
   app.innerHTML = `
   <header class="topbar"><div class="wrap topbar-row">
-    <div>
+    <div class="topbar-brand">
       <img class="brand" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
-      <h1>Site surveys</h1>
+      <span class="topbar-div"></span>
+      <h1 class="topbar-title">Site surveys</h1>
     </div>
     <span class="syncstate"></span>
     <button class="linkbtn" data-act="menu">Menu</button>
@@ -1064,10 +1067,13 @@ function renderSurvey(){
   app.innerHTML = `
   <header class="topbar"><div class="wrap">
     <div class="topbar-row">
-      <button class="markbtn" data-act="back" aria-label="Back to surveys">
-        <img class="mark" src="${LOGO_MARK}" alt="" width="116" height="116">
-        <span class="linkbtn" style="min-height:auto;padding:0">&lsaquo; Surveys</span>
-      </button>
+      <div class="topbar-brand">
+        <button class="brand-back" data-act="back" aria-label="Back to surveys">
+          <img class="brand" src="${LOGO_FULL}" alt="" width="344" height="141">
+        </button>
+        <span class="topbar-div"></span>
+        <h2 class="topbar-title">${esc(surveyTitle(a))}</h2>
+      </div>
       <span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
         <span class="savestate">${S.saving ? 'Saving' : 'Saved'}</span>
         <span class="syncstate"></span>
@@ -1078,7 +1084,6 @@ function renderSurvey(){
       </span>
     </div>
     <div class="only-narrow" style="margin-top:8px">
-      <h2 style="font-size:20px">${esc(surveyTitle(a))}</h2>
       ${progBlock}
     </div>
   </div></header>
