@@ -1007,7 +1007,6 @@ function renderList(){
   app.innerHTML = `
   <header class="topbar"><div class="wrap topbar-row">
     <div>
-      <a class="linkbtn" href="#/" style="min-height:auto;padding:0 0 10px">&lsaquo; Home</a>
       <img class="brand" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
       <h1>Site surveys</h1>
     </div>
@@ -2061,6 +2060,7 @@ function openMenu(){
   sheetBody.innerHTML = `
     <div class="sheet-head"><h3>Menu</h3><button class="linkbtn" data-act="sheetclose">Close</button></div>
     <div class="sheet-list" style="padding:var(--pad)">
+      <a class="btn secondary" href="#/" data-act="sheetclose" style="margin-bottom:10px">Home</a>
       <button class="btn secondary" data-act="syncnow" style="margin-bottom:10px">Sync now</button>
       <a class="btn secondary" href="#/admin" data-act="sheetclose" style="margin-bottom:10px">Sign in</a>
       ${S.record ? `<button class="btn mock" data-act="mockall" style="margin-bottom:10px">Fill every step with sample data</button>
@@ -2431,13 +2431,14 @@ function render(){
   (S.view === 'survey' && S.record) ? renderSurvey() : renderList();
 }
 
-(async function boot(){
-  try {
-    if (!location.hash || location.hash === '#') history.replaceState(null, '', '#/');
-    await Store.init();
-    await loadList();
-    syncPending();
-  } catch (err) {
+function boot(){
+  let r = currentRoute();
+  if (r !== 'home' && r !== 'surveys' && r !== 'admin' && r !== 'submitted'){
+    history.replaceState(null, '', '#/');
+    r = 'home';
+  }
+  if (r === 'home') render();
+  Store.init().then(() => loadList()).then(() => syncPending()).catch(err => {
     app.innerHTML = `<div class="boot">
       <img class="boot-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
       <h1>The app could not start</h1>
@@ -2445,8 +2446,9 @@ function render(){
       <div class="boot-help"><p>If it keeps happening, send this line to Harry:</p>
         <p><strong>${esc(String((err && err.message) || err))}</strong></p></div>
     </div>`;
-  }
-})();
+  });
+}
+boot();
 </script>
 </body>
 </html>
