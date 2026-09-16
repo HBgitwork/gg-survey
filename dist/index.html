@@ -201,7 +201,7 @@ a.btn{text-decoration:none;color:#fff}
 .banner.info{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
 .banner b{display:block;margin-bottom:2px}
 .track{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
-.fill{height:100%;background:var(--primary);transition:width .2s ease}
+.fill{height:100%;background:var(--primary);transform-origin:left center;transition:transform .2s ease}
 .meta{font-size:13px;font-weight:400;color:var(--muted);margin-top:6px}
 .savestate{font-size:13px;color:var(--success)}
 .savestate.saving{color:var(--amber)}
@@ -335,9 +335,15 @@ a.btn{text-decoration:none;color:#fff}
  background:#FCF0F0;border-left:3px solid #9B2C2C;border-radius:8px;
  font-size:13.5px;line-height:1.45;color:#9B2C2C}
 .auth .err svg{width:16px;height:16px;flex:0 0 auto;margin-top:1px}
-.auth .foot{border-top:1px solid var(--line);background:var(--paper);padding:14px;
- text-align:center}
-.auth .foot a{font-size:14px;color:var(--muted);text-decoration:none;font-weight:500}
+.auth .foot{border-top:1px solid var(--line);background:var(--paper);margin:0;
+ padding:0;border-radius:0 0 16px 16px}
+.auth .foot a{display:flex;align-items:center;justify-content:center;gap:8px;
+ width:100%;min-height:52px;font-size:14.5px;font-weight:600;
+ color:var(--primary);text-decoration:none;
+ transition:background 140ms ease}
+.auth .foot a:hover{background:#E9E7E4}
+.auth .foot a svg{width:15px;height:15px;flex:0 0 auto;transition:transform 140ms ease}
+.auth .foot a:hover svg{transform:translateX(-3px)}
 @media (max-height:680px){ .auth .card>.inner{padding:24px 22px} .auth .sub{margin-bottom:20px} }
 
 /* ---------- step strip (narrow) ----------
@@ -608,9 +614,15 @@ body.modal-open{ overflow:hidden }
 #report{display:none}
 @media print{
   @page{size:A4;margin:13mm 11mm 14mm}
-  #app{display:none!important}
-  html,body{background:#fff}
-  #report{display:block;font-size:10.5px;color:#0E1417;line-height:1.45}
+  html,body{height:auto !important; overflow:visible !important;
+    position:static !important; background:#fff}
+  #app,.layout,.content,.shell,#app>main{height:auto !important;
+    max-height:none !important; overflow:visible !important;
+    display:block !important; position:static !important}
+  #app{display:none !important}
+  #report{display:block !important; height:auto !important;
+    overflow:visible !important; font-size:10.5px; color:#0E1417; line-height:1.45}
+  #boot,.topbar,.steps,.bottombar,.sidenav,dialog{display:none !important}
 
   /* Running footer on every page via @page margin boxes */
   @page{
@@ -636,9 +648,11 @@ body.modal-open{ overflow:hidden }
     color:#8F5806;font-size:10px;font-weight:700;letter-spacing:.04em}
 
   /* Sections: numbered red square + title + hairline */
-  #report section{margin-bottom:14px;break-inside:avoid}
+  #report section{margin-bottom:14px}
   #report h2{font-size:12.5px;font-weight:700;color:#0E1417;margin:0 0 8px;padding-bottom:5px;
-    border-bottom:1px solid #D3DBDC;display:flex;align-items:center;gap:8px;break-after:avoid}
+    border-bottom:1px solid #D3DBDC;display:flex;align-items:center;gap:8px;break-after:avoid;page-break-after:avoid}
+  #report tr,#report .field-row{break-inside:avoid;page-break-inside:avoid}
+  #report figure{break-inside:avoid;page-break-inside:avoid}
   #report h2 .n{display:inline-flex;align-items:center;justify-content:center;
     width:16px;height:16px;background:#ED1C24;color:#fff;font-size:9px;font-weight:700;
     border-radius:3px;flex:0 0 auto}
@@ -669,9 +683,9 @@ body.modal-open{ overflow:hidden }
   #report .muted{color:#6B7C85}
 
   /* Photographs: three across, bordered, own page, caption only */
-  #report .photos-section{break-before:page}
+  #report .photos-section{break-before:page;page-break-before:always}
   #report .pgrid{display:flex;flex-wrap:wrap;gap:8px}
-  #report figure{width:31%;margin:0;break-inside:avoid}
+  #report figure{width:31%;margin:0}
   #report figure img{width:100%;border:1px solid #D3DBDC;border-radius:3px;display:block}
   #report figcaption{font-size:9px;color:#6B7C85;margin-top:3px}
 }
@@ -1337,7 +1351,7 @@ function renderSurvey(){
   const prog = overallProgress(a);
   const submitted = rec.status === 'SUBMITTED';
   const sec = S.step < REVIEW ? SECTIONS[S.step] : null;
-  const progBlock = `<div class="track"><div class="fill" style="width:${Math.max(2,prog.pct)}%"></div></div>
+  const progBlock = `<div class="track"><div class="fill" style="transform:scaleX(${Math.max(2,prog.pct)/100})"></div></div>
     <p class="meta">${prog.done} of ${prog.total} required answers</p>`;
 
   app.innerHTML = `
@@ -2648,6 +2662,12 @@ app.addEventListener('input', (e) => {
     if (list[i]){ list[i] = Object.assign({}, list[i], { caption: el.value }); S.answers[el.dataset.f] = list; touchField(el.dataset.f); queueSave(); }
     return;
   }
+  if (el.id === 'e' || el.id === 'p'){
+    adminErr = '';
+    const errEl = document.querySelector('.auth .err');
+    if (errEl) errEl.remove();
+    return;
+  }
   const fid = el.dataset.f;
   if (!fid || !FIELD_INDEX[fid]) return;
   if (el.dataset.bool) return;
@@ -2806,7 +2826,7 @@ function handleRouteChange(){
   if (S.record) persist();
   const r = currentRoute();
   if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; S.selectMode = false; S.selectedIds.clear(); loadList(); }
-  else if (r === 'admin'){ adminChecking = true; renderAdmin(); }
+  else if (r === 'admin'){ adminErr = ''; adminChecking = true; renderAdmin(); }
   else if (r === 'submitted' && S.record){ render(); }
   else render();
 }
@@ -2903,7 +2923,7 @@ async function renderAdmin(){
         await sbClient.auth.signOut();
         adminEmail = null;
         adminChecking = false;
-        adminErr = 'This account does not have office access.';
+        adminErr = '';
         try { await sbClient.auth.signInAnonymously(); } catch(e){}
         return renderAdmin();
       }
@@ -2941,7 +2961,7 @@ async function renderAdmin(){
               <path d="M12 8v5M12 16.5v.01"/></svg>
             ${esc(adminErr)}</div>` : ''}
         </div>
-        <div class="foot"><a href="/">Back to site surveys</a></div>
+        <div class="foot"><a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Back to site surveys</a></div>
       </div>
     </div>`;
     return;
