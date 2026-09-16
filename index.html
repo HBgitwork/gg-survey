@@ -904,7 +904,7 @@ function syncPill(rec){
   if (rec.status !== 'SUBMITTED') return '';
   const st = syncState(rec);
   if (st === 'SENT') return '<span class="pill SENT">SENT</span>';
-  return '<span class="pill NOT-SENT">NOT SENT</span>';
+  return '';
 }
 function sendBanner(rec){
   if (rec.status !== 'SUBMITTED') return '';
