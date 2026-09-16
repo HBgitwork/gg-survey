@@ -65,6 +65,20 @@ body{
 button{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:4px}
 .visually-hidden{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+/* Kill the 300ms double-tap zoom gesture so the app feels native, without
+   blocking pinch zoom for anyone who needs it. user-select:none stops the
+   accidental text selection that comes with a double tap on chrome. Answer
+   values on the review screen, the job reference and site details stay
+   selectable so a surveyor can copy them. */
+#app,button,input,select,textarea,label,.btn,.linkbtn,.step,.snav,.srow,
+.pill,.filters button,.yesno span,.msbtn,.brand-link,.brand-back,.sidenav-back,
+.home-count,.home-signin,.confirm-home,.admin-back,.home-back{
+  touch-action:manipulation}
+h1,h2,label,button,.btn,.linkbtn,.step,.snav,.pill,.filters button,.yesno span,.msbtn,
+.sidenav-back,.brand-link,.brand-back{
+  user-select:none;-webkit-user-select:none}
+.kv dd,.srow-ref,.srow-site,.srow-meta,.confirm-ref,.confirm-site{
+  user-select:text;-webkit-user-select:text}
 .wrap{width:100%;min-width:0;max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad)}
 
 /* ---------- shell ---------- */
