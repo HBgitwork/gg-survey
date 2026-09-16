@@ -2563,14 +2563,12 @@ function boot(){
   const msgEl = bootEl.querySelector('.boot-msg');
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
   const MESSAGES = ['Loading', 'Opening your surveys', 'Almost there', 'Ready'];
-  const TIMES = [450, 900, 1350, 1800];
-  const stages = [false, false, false, false];
+  const TIMES = [700, 1400, 2100, 2800];
   let lit = 0;
+  let appReady = false;
   let finished = false;
 
   function lightPane(i){
-    if (i < lit) return;
-    lit = i + 1;
     panes[i].classList.add('lit');
     msgEl.textContent = MESSAGES[i];
   }
@@ -2579,7 +2577,7 @@ function boot(){
     finished = true;
     msgEl.textContent = 'Ready';
     bootEl.classList.add('filled');
-    const t1 = reduce ? 0 : 220;
+    const t1 = reduce ? 0 : 300;
     const t2 = reduce ? 0 : 220;
     setTimeout(() => {
       bootEl.classList.add('done');
@@ -2590,28 +2588,23 @@ function boot(){
       }, t2);
     }, t1);
   }
-  function check(){
+
+  const timer = setInterval(() => {
     const elapsed = performance.now() - bootStart;
-    for (let i = lit; i < 4; i++){
-      if (stages[i] && elapsed >= TIMES[i]) lightPane(i);
+    while (lit < 4 && elapsed >= TIMES[lit]){
+      lightPane(lit);
+      lit++;
     }
-    if (lit < 4){
-      if (lit > 0 || stages[0]) msgEl.textContent = MESSAGES[Math.min(lit, 3)];
-    } else {
-      finishBoot();
-      return;
+    if (lit >= 4){
+      clearInterval(timer);
+      if (appReady) finishBoot();
     }
-  }
+  }, 50);
 
-  const interval = setInterval(check, 50);
-
-  stages[0] = true;
-
-  Store.init().then(() => { stages[1] = true; return loadList(); })
-    .then(() => { stages[2] = true; syncPending(); })
-    .then(() => { stages[3] = true; })
+  Store.init().then(() => loadList())
+    .then(() => { syncPending(); appReady = true; if (lit >= 4 && !finished) finishBoot(); })
     .catch(err => {
-      clearInterval(interval);
+      clearInterval(timer);
       bootEl.remove();
       app.style.visibility = 'visible';
       app.innerHTML = `<div class="boot-fatal">
