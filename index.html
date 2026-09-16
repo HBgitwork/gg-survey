@@ -50,7 +50,8 @@ button{font:inherit;color:inherit}
 .wrap{width:100%;min-width:0;max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad)}
 
 /* ---------- shell ---------- */
-#app{min-height:100dvh;display:flex;flex-direction:column;background:var(--paper)}
+#app{min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);visibility:hidden}
+#app .boot{visibility:visible}
 .topbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line);
   padding-block:max(env(safe-area-inset-top),10px) 10px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -2437,8 +2438,8 @@ function boot(){
     history.replaceState(null, '', '#/');
     r = 'home';
   }
-  if (r === 'home') render();
-  Store.init().then(() => loadList()).then(() => syncPending()).catch(err => {
+  if (r === 'home') { render(); app.style.visibility = 'visible'; }
+  Store.init().then(() => loadList()).then(() => { if (r !== 'home') app.style.visibility = 'visible'; }).then(() => syncPending()).catch(err => {
     app.innerHTML = `<div class="boot">
       <img class="boot-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing">
       <h1>The app could not start</h1>
