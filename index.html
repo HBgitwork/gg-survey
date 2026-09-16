@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0F6E7C">
+<meta name="theme-color" content="#0A5A68">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,15 +13,15 @@
 <title>GG Survey</title>
 <style>
 :root{
-  --ink:#0E1417; --slate:#1C262B; --steel:#41535C; --muted:#5E6D75;
-  --line:#D3DBDC; --line-strong:#B4C0C2; --paper:#F5F7F6; --card:#FFFFFF;
+  --ink:#0E1417; --slate:#1C262B; --steel:#3A4A53; --muted:#62717A;
+  --line:#E3E8E9; --line-strong:#CFD6D8; --paper:#F5F3F0; --card:#FFFFFF;
   /* #6B7C85 only reached 4.0:1 on the paper background, which is not enough
      for grey captions on a phone held up in daylight. */
-  --primary:#0F6E7C; --primary-soft:#E4F0F1;
+  --primary:#0A5A68; --primary-soft:#E4F0F1;
   --amber:#8F5806; --amber-soft:#FBF0DC;
   --danger:#96221A; --danger-soft:#FBE6E4;
   --success:#1A5B3B; --success-soft:#E3F0E8;
-  --r:10px; --tap:52px; --pad:16px; --maxw:1280px; --side:280px; --gutter:40px;
+  --r:12px; --r-lg:16px; --tap:52px; --pad:16px; --maxw:1280px; --side:280px; --gutter:40px;
   /* One measure for the whole survey, so no section is wider than another. */
   --form:880px;
 
@@ -61,9 +61,9 @@ button{font:inherit;color:inherit}
 @media (min-width:768px){ .mark{height:30px} }
 .sidelogo{height:52px;width:auto;display:block;margin-bottom:22px}
 .blank .mark{height:44px;margin:0 auto 16px}
-h1{font-size:24px;line-height:1.15;margin:0;letter-spacing:-.01em;color:var(--ink)}
-h2{font-size:22px;line-height:1.2;margin:0 0 4px;color:var(--ink)}
-.sub{font-size:14px;color:var(--muted);margin:0}
+h1{font-size:24px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.sub{font-size:14px;font-weight:400;color:var(--muted);margin:0}
 .eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--primary);margin:0 0 4px}
 @media (min-width:768px){ h1{font-size:28px} h2{font-size:26px} }
 
@@ -101,7 +101,9 @@ main{flex:1;padding-block:var(--pad) 28px}
 /* ---------- buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--tap);width:100%;
   padding:0 16px;border-radius:var(--r);border:1.5px solid transparent;background:var(--primary);color:#fff;
-  font-size:16px;font-weight:600;cursor:pointer;text-align:center}
+  font-size:16px;font-weight:600;cursor:pointer;text-align:center;
+  transition:background-color 150ms ease,border-color 150ms ease,color 150ms ease,opacity 150ms ease}
+.btn:hover{opacity:.92}
 .btn:active{opacity:.85}
 .btn[disabled]{opacity:.45;cursor:default}
 .btn.secondary{background:var(--card);border-color:var(--primary);color:var(--primary)}
@@ -122,7 +124,9 @@ main{flex:1;padding-block:var(--pad) 28px}
 a.btn{text-decoration:none;color:#fff}
 
 /* ---------- cards, banners, progress ---------- */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--pad);margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--pad);margin-bottom:14px;
+  box-shadow:0 2px 8px -2px rgba(14,20,23,0.07);transition:box-shadow 150ms ease}
+.card:hover{box-shadow:0 4px 12px -2px rgba(14,20,23,0.10)}
 .banner{border-left:4px solid;border-radius:6px;padding:12px 14px;margin-bottom:16px;font-size:14.5px;
   line-height:1.4;font-weight:500;max-width:var(--form)}
 .banner.amber{background:var(--amber-soft);border-color:var(--amber);color:var(--amber)}
@@ -132,7 +136,7 @@ a.btn{text-decoration:none;color:#fff}
 .banner b{display:block;margin-bottom:2px}
 .track{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
 .fill{height:100%;background:var(--primary);transition:width .2s ease}
-.meta{font-size:13px;color:var(--muted);margin-top:6px}
+.meta{font-size:13px;font-weight:400;color:var(--muted);margin-top:6px}
 .savestate{font-size:13px;color:var(--success)}
 .savestate.saving{color:var(--amber)}
 .syncstate{font-size:13px;color:var(--amber);display:none}
@@ -145,14 +149,22 @@ a.btn{text-decoration:none;color:#fff}
 
 /* ---------- homepage ---------- */
 .home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center}
-.home-logo{height:56px;width:auto;margin:0 0 20px}
-@media (min-width:768px){ .home-logo{height:64px} }
-.home-lead{font-size:17px;color:var(--muted);margin:0 0 32px;max-width:420px;line-height:1.5}
-.home-actions{display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px}
+.home.door{min-height:100dvh;padding-block:var(--pad) 15vh;
+  background:radial-gradient(ellipse 90% 65% at 50% 30%, rgba(10,90,104,0.045), transparent 72%)}
+.home-logo{height:112px;width:auto;margin:0 0 14px}
+@media (min-width:768px){ .home-logo{height:128px} }
+.home-head{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin:0 0 6px}
+@media (min-width:768px){ .home-head{font-size:25px} }
+.home-lead{font-size:14px;font-weight:400;color:var(--muted);margin:0 0 36px;max-width:380px;line-height:1.5}
+.home-actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px}
+.home-primary{font-size:18px;font-weight:700;min-height:56px}
+.home-count{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--primary);text-decoration:none;min-height:52px}
+.home-signin{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--steel);text-decoration:none;min-height:52px}
 .home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
 
 /* ---------- admin sign in ---------- */
-.admin-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--pad);width:100%;max-width:380px;margin:0 auto;text-align:left}
+.admin-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--pad);width:100%;max-width:380px;margin:0 auto;text-align:left;
+  box-shadow:0 2px 8px -2px rgba(14,20,23,0.07)}
 .admin-card h1{margin:0 0 4px;text-align:center}
 .admin-card .sub{text-align:center;margin:0 0 20px}
 .admin-card .field{margin-bottom:16px}
@@ -169,14 +181,14 @@ a.btn{text-decoration:none;color:#fff}
   border-bottom:1px solid var(--line);scrollbar-width:none;-webkit-overflow-scrolling:touch;
   position:sticky;top:var(--steps-top,0);z-index:19;width:100%;max-width:100%;padding-inline:var(--pad)}
 .steps::-webkit-scrollbar{display:none}
-.step{flex:0 0 auto;min-width:44px;height:44px;padding:0 12px;border-radius:8px;border:1px solid var(--line);
+.step{flex:0 0 auto;min-width:44px;height:44px;padding:0 12px;border-radius:var(--r);border:1px solid var(--line);
   background:var(--card);color:var(--steel);font-weight:600;font-size:15px;cursor:pointer}
 .step[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .step.done{background:var(--success-soft);border-color:var(--success);color:var(--success)}
 .step[aria-current="step"].done{background:var(--ink);border-color:var(--ink);color:#fff}
 
 /* ---------- side nav (wide) ---------- */
-.sidenav h3{font-size:18px;margin:0 0 10px;color:var(--ink);overflow-wrap:anywhere}
+.sidenav h3{font-size:18px;font-weight:700;letter-spacing:-.02em;margin:0 0 10px;color:var(--ink);overflow-wrap:anywhere}
 .sidenav ol{list-style:none;margin:20px 0 0;padding:0}
 .sidenav li{margin-bottom:2px}
 .snav{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 10px;border:0;
@@ -205,7 +217,7 @@ a.btn{text-decoration:none;color:#fff}
 .field-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
 .field label.lbl,.field .lbl{font-size:15px;font-weight:600;color:var(--slate);display:block}
 .req{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--amber);white-space:nowrap}
-.hint{font-size:13px;color:var(--muted);margin:0 0 8px;line-height:1.4;max-width:68ch}
+.hint{font-size:13px;font-weight:400;color:var(--muted);margin:0 0 8px;line-height:1.4;max-width:68ch}
 .warnbox{margin-top:8px;background:var(--amber-soft);border-left:4px solid var(--amber);border-radius:6px;
   padding:12px;font-size:14px;color:var(--amber);font-weight:500;line-height:1.4}
 
@@ -214,7 +226,7 @@ input[type=text],input[type=tel],input[type=email],input[type=date],input[type=t
   background:var(--card);color:var(--ink);font-size:16px;font-family:inherit}
 textarea{min-height:96px;resize:vertical;line-height:1.4}
 select{appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%236B7C85' stroke-width='2' stroke-linecap='round'/></svg>");
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%2362717A' stroke-width='2' stroke-linecap='round'/></svg>");
   background-repeat:no-repeat;background-position:right 14px center;background-size:12px;padding-right:38px}
 input:user-invalid,textarea:user-invalid,select:user-invalid{border-color:var(--danger)}
 .with-unit{display:flex;align-items:center;gap:8px}
@@ -259,7 +271,7 @@ dialog{
   max-width:min(var(--dlg-w), calc(100vw - 2 * var(--dlg-gutter)));
   height:fit-content;
   max-height:var(--dlg-h);
-  border-radius:14px; overflow:hidden;
+  border-radius:var(--r-lg); overflow:hidden;
 }
 dialog::backdrop{ background:rgba(14,20,23,.5) }
 
@@ -277,7 +289,7 @@ dialog::backdrop{ background:rgba(14,20,23,.5) }
 
 .sheet-head{ display:flex; align-items:center; justify-content:space-between; gap:12px;
   padding:14px var(--pad) 12px; border-bottom:1px solid var(--line); flex:0 0 auto }
-.sheet-head h3{ margin:0; font-size:17px; color:var(--ink) }
+.sheet-head h3{ margin:0; font-size:17px; font-weight:700; letter-spacing:-.02em; color:var(--ink) }
 .sheet-search{ margin:0; padding:12px var(--pad); flex:0 0 auto;
   border-bottom:1px solid var(--line); background:var(--card) }
 .sheet-list{ flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
@@ -291,7 +303,7 @@ dialog::backdrop{ background:rgba(14,20,23,.5) }
 .opt[aria-pressed="true"]{font-weight:600;color:var(--ink)}
 
 .confirmbox{ padding:var(--pad); overflow-y:auto }
-.confirmbox h3{margin:0 0 8px;font-size:18px;color:var(--ink)}
+.confirmbox h3{margin:0 0 8px;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .confirmbox p{margin:0 0 20px;font-size:15px;color:var(--steel);line-height:1.45}
 
 /* Stops the page behind a modal scrolling under your finger on iOS. */
@@ -332,15 +344,16 @@ body.modal-open{ overflow:hidden }
 /* ---------- list screen ---------- */
 .filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
-.filters button{flex:0 0 auto;min-height:42px;padding:0 15px;border-radius:8px;border:1px solid var(--line);
+.filters button{flex:0 0 auto;min-height:42px;padding:0 15px;border-radius:var(--r);border:1px solid var(--line);
   background:var(--card);color:var(--steel);font-size:14px;font-weight:500;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .srows{display:grid;grid-template-columns:1fr;gap:14px}
 @media (min-width:680px){ .srows{grid-template-columns:repeat(2,1fr)} }
 @media (min-width:1180px){ .srows{grid-template-columns:repeat(3,1fr)} }
 .srow{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
-  border-radius:var(--r);overflow:hidden}
-.srow:hover{border-color:var(--line-strong)}
+  border-radius:var(--r-lg);overflow:hidden;box-shadow:0 2px 8px -2px rgba(14,20,23,0.07);
+  transition:box-shadow 150ms ease,border-color 150ms ease}
+.srow:hover{box-shadow:0 4px 12px -2px rgba(14,20,23,0.10)}
 .srow-main{flex:1;display:block;width:100%;text-align:left;background:none;border:0;padding:var(--pad);cursor:pointer}
 .srow-main:active{background:var(--primary-soft)}
 .srow-foot{display:flex;justify-content:flex-end;border-top:1px solid var(--paper);padding:0 8px}
@@ -349,11 +362,11 @@ body.modal-open{ overflow:hidden }
 .srow-del:hover{background:var(--danger-soft)}
 .srow-del svg{width:17px;height:17px;flex:0 0 auto}
 .srow-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
-.srow-ref{font-size:17px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.srow-ref{font-size:17px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
 .srow-site{display:block;font-size:16px;color:var(--slate);margin-bottom:3px}
 .srow-meta{display:block;font-size:13px;color:var(--muted)}
 .blank{padding:48px 20px;text-align:center;grid-column:1/-1}
-.blank h3{margin:0 0 8px;font-size:18px;color:var(--ink)}
+.blank h3{margin:0 0 8px;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .blank p{margin:0 auto;max-width:360px;font-size:15px;color:var(--muted);line-height:1.5}
 .storagenote{font-size:12.5px;color:var(--muted);margin-top:18px;max-width:70ch}
 
@@ -431,7 +444,7 @@ body.modal-open{ overflow:hidden }
 .boot{max-width:470px;margin:0 auto;padding:44px var(--pad) 32px}
 .boot-logo{width:172px;height:auto;display:block;margin:0 0 18px}
 .boot h1{margin:0 0 6px}
-.boot-lead{color:var(--muted);margin:0 0 26px;font-size:15px}
+.boot-lead{color:var(--muted);margin:0 0 26px;font-size:15px;font-weight:400}
 .boot-help{background:var(--amber-soft);border-left:4px solid var(--amber);border-radius:6px;
   padding:14px 16px;color:var(--amber)}
 .boot-help p{margin:0 0 10px;font-size:14.5px;line-height:1.45}
@@ -2267,13 +2280,16 @@ function currentRoute(){
   return 'home';
 }
 function renderHome(){
+  const count = (S.records || []).length;
   app.innerHTML = `
-  <div class="home">
+  <div class="home door">
     <img class="home-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
-    <p class="home-lead">Site surveys that work on site, with or without signal.</p>
+    <h1 class="home-head">Site surveys</h1>
+    <p class="home-lead">That work on site, with or without signal.</p>
     <div class="home-actions">
-      <a class="btn" href="#/surveys">Start a survey</a>
-      <a class="btn secondary" href="#/admin">Sign in</a>
+      <a class="btn home-primary" href="#/surveys">Start a survey</a>
+      ${count ? `<a class="home-count" href="#/surveys">${count} survey${count===1?'':'s'} on this phone</a>` : ''}
+      <a class="home-signin" href="#/admin">Sign in</a>
     </div>
   </div>`;
 }
