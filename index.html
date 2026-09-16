@@ -538,7 +538,7 @@ body.modal-open{ overflow:hidden }
 .boot-win .p.lit{fill:var(--primary)}
 .boot-msg{margin:0;font-size:14.5px;color:var(--muted);letter-spacing:.01em;
   min-height:20px;transition:color 200ms ease}
-#boot.filled .boot-win .p{fill:#ED1C24}
+#boot.filled .boot-win .p{fill:#ED1C24;transition:fill 320ms ease}
 #boot.filled .boot-msg{color:var(--primary);font-weight:600}
 #boot.done{opacity:0;transition:opacity 220ms ease;pointer-events:none}
 @media (prefers-reduced-motion:reduce){
@@ -2582,7 +2582,7 @@ function boot(){
     finished = true;
     msgEl.textContent = 'Ready';
     bootEl.classList.add('filled');
-    const t1 = reduce ? 0 : 400;
+    const t1 = reduce ? 0 : 900;
     const t2 = reduce ? 0 : 220;
     setTimeout(() => {
       bootEl.classList.add('done');
