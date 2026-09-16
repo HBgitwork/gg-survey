@@ -508,9 +508,12 @@ body.modal-open{ overflow:hidden }
 
 .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:620px;margin:0 auto 0;padding-bottom:10px;flex:0 0 auto}
 .list-toolbar .filters{margin:0;padding-bottom:0}
-.list-select-btn{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);
-  background:var(--card);color:var(--slate);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
-.list-select-btn:active{background:var(--primary-soft)}
+.list-select-btn{flex:0 0 40px;width:40px;height:40px;min-width:40px;min-height:44px;border-radius:8px;border:1px solid var(--line);
+  background:var(--card);color:var(--slate);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background 120ms ease,border-color 120ms ease,color 120ms ease;padding:0}
+.list-select-btn:hover{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+.list-select-btn:active{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+.list-select-btn svg{width:18px;height:18px}
 
 .bulk-bar{display:flex;align-items:center;gap:10px;max-width:620px;margin:0 auto}
 .bulk-count{flex:1 1 auto;font-size:14px;font-weight:600;color:var(--ink);min-width:0}
@@ -1204,7 +1207,9 @@ function renderList(){
         <button data-act="filter" data-v="DRAFT" aria-pressed="${S.filter==='DRAFT'}">Drafts ${drafts}</button>
         <button data-act="filter" data-v="SUBMITTED" aria-pressed="${S.filter==='SUBMITTED'}">Submitted ${done}</button>
       </div>
-      <button class="list-select-btn" data-act="${S.selectMode ? 'cancelSelect' : 'startSelect'}">${S.selectMode ? 'Cancel' : 'Select'}</button>
+      <button class="list-select-btn" data-act="${S.selectMode ? 'cancelSelect' : 'startSelect'}" aria-label="${S.selectMode ? 'Cancel selection' : 'Select surveys'}" aria-pressed="${S.selectMode}" title="${S.selectMode ? 'Cancel selection' : 'Select surveys'}">${S.selectMode
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="5" rx="1"/><path d="M5 6.5l1 1 2-2"/><rect x="3" y="11" width="5" height="5" rx="1"/><rect x="3" y="18" width="5" height="3" rx="1"/><path d="M10 6.5h11M10 13.5h11M10 19.5h11"/></svg>'}</button>
     </div>
     ${Store.mode === 'memory' ? `<div class="banner danger"><b>This page cannot save anything</b>
       Your browser is blocking storage, which usually happens when the file is opened straight from Files or in private browsing.
