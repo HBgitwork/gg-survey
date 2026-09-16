@@ -65,6 +65,20 @@ body{
 button{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:4px}
 .visually-hidden{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+/* Kill the 300ms double-tap zoom gesture so the app feels native, without
+   blocking pinch zoom for anyone who needs it. user-select:none stops the
+   accidental text selection that comes with a double tap on chrome. Answer
+   values on the review screen, the job reference and site details stay
+   selectable so a surveyor can copy them. */
+#app,button,input,select,textarea,label,.btn,.linkbtn,.step,.snav,.srow,
+.pill,.filters button,.yesno span,.msbtn,.brand-link,.brand-back,.sidenav-back,
+.home-count,.home-signin,.confirm-home,.admin-back,.home-back{
+  touch-action:manipulation}
+h1,h2,label,button,.btn,.linkbtn,.step,.snav,.pill,.filters button,.yesno span,.msbtn,
+.sidenav-back,.brand-link,.brand-back{
+  user-select:none;-webkit-user-select:none}
+.kv dd,.srow-ref,.srow-site,.srow-meta,.confirm-ref,.confirm-site{
+  user-select:text;-webkit-user-select:text}
 .wrap{width:100%;min-width:0;max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad)}
 
 /* ---------- shell ---------- */
@@ -127,14 +141,17 @@ main{flex:1;padding-block:var(--pad) 28px}
 @media (max-width:1023px){ .sidenav{display:none!important} }
 
 /* On a phone the survey fills the screen: the header and action bar stay
-   fixed and only the form scrolls, so the bar cannot rubber-band away. */
+   fixed and only the form scrolls, so the bar cannot rubber-band away.
+   Three flex children of #app: header+steps (0 0 auto), the form (1 1 auto,
+   scrolls), the action bar (0 0 auto). The bar is a normal flex child, not
+   sticky, so overflow:hidden on the parent cannot lose it. */
 @media (max-width:1023px){
-  #app:has(.layout){height:100dvh;overflow:hidden}
+  #app:has(.layout){height:100dvh;min-height:0;overflow:hidden}
   #app:has(.layout) .topbar{position:static;flex:0 0 auto}
   #app:has(.layout) .steps{position:static;flex:0 0 auto}
-  #app:has(.layout) .layout{min-height:0}
-  #app:has(.layout) .layout > .content{min-height:0;overflow:hidden}
-  #app:has(.layout) #secbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  #app:has(.layout) .layout{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+  #app:has(.layout) .layout > .content{flex:1 1 0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  #app:has(.layout) #secbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
   #app:has(.layout) .bottombar{position:static;flex:0 0 auto}
 }
 
@@ -481,7 +498,7 @@ body.modal-open{ overflow:hidden }
 .filters button{flex:0 0 auto;min-height:42px;padding:0 15px;border-radius:var(--r);border:1px solid var(--line);
   background:var(--card);color:var(--steel);font-size:14px;font-weight:500;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
-.srows{display:grid;grid-template-columns:1fr;gap:10px;max-width:620px;margin:0 auto}
+.srows{display:grid;grid-template-columns:1fr;gap:10px;max-width:620px;margin:0 auto;align-content:start}
 .srow{display:flex;align-items:flex-start;background:var(--card);border:1px solid var(--line);
   border-radius:12px;overflow:hidden;box-shadow:0 1px 3px -1px rgba(14,20,23,0.06);
   transition:box-shadow 150ms ease,border-color 150ms ease}
