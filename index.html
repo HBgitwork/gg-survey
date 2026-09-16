@@ -72,11 +72,19 @@ button{font:inherit;color:inherit}
 .topbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line);
   padding-block:max(env(safe-area-inset-top),14px) 14px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+/* Constrain header contents to the same measure as the content beneath.
+   The divider rule still runs the full width of the window. */
+.topbar-list{max-width:620px}
+.topbar-survey{max-width:var(--form)}
 .brand{display:block;height:36px;width:auto;margin:0}
 @media (min-width:768px){ .brand{height:40px} }
 .topbar-brand{display:flex;align-items:center;gap:14px;min-width:0}
 .topbar-div{width:1px;align-self:stretch;background:var(--line-strong);margin-block:4px;flex:0 0 auto}
 .brand-back{display:flex;align-items:center;background:none;border:0;padding:0;cursor:pointer;min-height:44px}
+.brand-link{display:flex;align-items:center;text-decoration:none;color:inherit;cursor:pointer;min-height:44px}
+.brand-link:focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:4px}
+.brand-link img{display:block}
+.brand-link .admin-logo{margin:0 auto 16px}
 .topbar-title{font-size:20px;line-height:1.2;margin:0;font-weight:600;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
 @media (min-width:768px){ .topbar-title{font-size:22px} }
 .topbar-title.title-trunc{cursor:pointer}
@@ -116,6 +124,18 @@ main{flex:1;padding-block:var(--pad) 28px}
   .topbar .only-narrow{display:none}
 }
 @media (max-width:1023px){ .sidenav{display:none!important} }
+
+/* On a phone the survey fills the screen: the header and action bar stay
+   fixed and only the form scrolls, so the bar cannot rubber-band away. */
+@media (max-width:1023px){
+  #app:has(.layout){height:100dvh;overflow:hidden}
+  #app:has(.layout) .topbar{position:static;flex:0 0 auto}
+  #app:has(.layout) .steps{position:static;flex:0 0 auto}
+  #app:has(.layout) .layout{min-height:0}
+  #app:has(.layout) .layout > .content{min-height:0;overflow:hidden}
+  #app:has(.layout) #secbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  #app:has(.layout) .bottombar{position:static;flex:0 0 auto}
+}
 
 /* A phone on its side has barely any height. Let the header scroll away so the
    sticky bars do not swallow the form. */
@@ -255,16 +275,23 @@ a.btn{text-decoration:none;color:#fff}
 .admin-signed{font-size:14px;color:var(--muted);margin:0 0 20px;text-align:center}
 .admin-signed b{color:var(--ink)}
 
-/* ---------- step strip (narrow) ---------- */
-.steps{display:flex;gap:8px;overflow-x:auto;padding-block:10px 12px;background:var(--paper);
-  border-bottom:1px solid var(--line);scrollbar-width:none;-webkit-overflow-scrolling:touch;
+/* ---------- step strip (narrow) ----------
+   Eight steps share the width equally: seven numbered squares plus a
+   Review button. Nothing scrolls or gets cut off at any phone width. */
+.steps{display:flex;gap:6px;padding-block:10px 12px;background:var(--paper);
+  border-bottom:1px solid var(--line);
   position:sticky;top:var(--steps-top,0);z-index:19;width:100%;max-width:100%;padding-inline:var(--pad)}
-.steps::-webkit-scrollbar{display:none}
-.step{flex:0 0 auto;min-width:44px;height:44px;padding:0 12px;border-radius:var(--r);border:1px solid var(--line);
-  background:var(--card);color:var(--steel);font-weight:600;font-size:15px;cursor:pointer}
+.step{flex:1 1 0;min-width:0;height:34px;padding:0;border-radius:var(--r);border:1px solid var(--line);
+  background:var(--card);color:var(--steel);font-weight:600;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
 .step[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .step.done{background:var(--success-soft);border-color:var(--success);color:var(--success)}
 .step[aria-current="step"].done{background:var(--ink);border-color:var(--ink);color:#fff}
+.step-review .step-review-chevron{display:none}
+@media (max-width:379px){
+  .step-review .step-review-label{display:none}
+  .step-review .step-review-chevron{display:block}
+}
 
 /* ---------- side nav (wide) ---------- */
 .sidenav h3{font-size:18px;font-weight:700;letter-spacing:-.02em;margin:0 0 10px;color:var(--ink);overflow-wrap:anywhere}
@@ -1082,9 +1109,9 @@ function renderList(){
   const done = S.records.filter(r => r.status === 'SUBMITTED').length;
 
   app.innerHTML = `
-  <header class="topbar"><div class="wrap topbar-row">
+  <header class="topbar"><div class="wrap topbar-row topbar-list">
     <div class="topbar-brand">
-      <img class="brand" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+      <a class="brand-link" href="#/" aria-label="Home"><img class="brand" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141"></a>
       <span class="topbar-div"></span>
       <h1 class="topbar-title list-title">Site surveys</h1>
     </div>
@@ -1149,12 +1176,10 @@ function renderSurvey(){
     <p class="meta">${prog.done} of ${prog.total} required answers</p>`;
 
   app.innerHTML = `
-  <header class="topbar"><div class="wrap">
+  <header class="topbar"><div class="wrap topbar-survey">
     <div class="topbar-row">
       <div class="topbar-brand">
-        <button class="brand-back" data-act="back" aria-label="Back to surveys">
-          <img class="brand" src="${LOGO_FULL}" alt="" width="344" height="141">
-        </button>
+        <a class="brand-link" href="#/" aria-label="Home"><img class="brand" src="${LOGO_FULL}" alt="" width="344" height="141"></a>
         <span class="topbar-div"></span>
         <h2 class="topbar-title">${esc(surveyTitle(a))}</h2>
       </div>
@@ -1178,7 +1203,7 @@ function renderSurvey(){
       return `<button class="step${p.complete?' done':''}" data-act="step" data-v="${i}" ${S.step===i?'aria-current="step"':''}
         aria-label="Section ${s.number}, ${esc(s.title)}${p.complete?', complete':''}">${(p.complete && S.step !== i) ? '&#10003;' : s.number}</button>`;
     }).join('')}
-    <button class="step" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''}>Review</button>
+    <button class="step step-review" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''} aria-label="Review and submit"><span class="step-review-label">Review</span><span class="step-review-chevron" aria-hidden="true">&rsaquo;</span></button>
   </nav>
 
   <div class="layout">
@@ -1206,8 +1231,6 @@ function renderSurvey(){
   setupCanvases();
   syncStickyOffsets();
   checkTitleTruncation();
-  const cur = $('.steps .step[aria-current="step"]');
-  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block:'nearest', inline:'center' });
 }
 
 function renderConfirmation(){
@@ -1443,12 +1466,14 @@ function setValue(fieldId, value, forceRender){
   const deps = DEPENDENTS[fieldId];
   if (forceRender || (deps && deps.length)) renderKeepingScroll();
 }
+function scrollTop(){ const s = $('#secbody'); if (s) s.scrollTop = 0; else window.scrollTo(0,0); }
 function renderKeepingScroll(){
-  const y = window.scrollY;
+  const scroller = $('#secbody');
+  const y = scroller ? scroller.scrollTop : window.scrollY;
   const active = document.activeElement;
   const key = active && active.dataset ? (active.dataset.f || '') + '|' + (active.dataset.i || '') + '|' + (active.dataset.k || '') : '';
   render();
-  window.scrollTo(0, y);
+  if (scroller) scroller.scrollTop = y; else window.scrollTo(0, y);
   if (key && key !== '||'){
     const parts = key.split('|');
     const sel = `[data-f="${CSS.escape(parts[0])}"]` + (parts[1] ? `[data-i="${parts[1]}"]` : '') + (parts[2] ? `[data-k="${parts[2]}"]` : '');
@@ -2256,25 +2281,25 @@ app.addEventListener('click', async (e) => {
     }
     case 'back': await persistNow(); S.record = null; S.answers = null; S.view = 'list'; await loadList(); break;
     case 'del': await deleteSurvey(t.dataset.id, false); break;
-    case 'step': S.step = Number(v); S.showMissing = false; render(); window.scrollTo(0,0); break;
-    case 'prev': S.step = Math.max(0, S.step - 1); render(); window.scrollTo(0,0); break;
+    case 'step': S.step = Number(v); S.showMissing = false; render(); scrollTop(); break;
+    case 'prev': S.step = Math.max(0, S.step - 1); render(); scrollTop(); break;
     case 'next': {
       if (S.step < REVIEW){
         const sec = SECTIONS[S.step];
         if (sec) visibleFields(sec, S.answers).forEach(f => touchField(f.id));
         queueSave();
       }
-      S.step = Math.min(REVIEW, S.step + 1); render(); window.scrollTo(0,0); break;
+      S.step = Math.min(REVIEW, S.step + 1); render(); scrollTop(); break;
     }
     case 'jump': {
       const i = SECTIONS.findIndex(s => s.id === v);
-      if (i >= 0){ S.step = i; render(); window.scrollTo(0,0);
+      if (i >= 0){ S.step = i; render(); scrollTop();
         if (t.dataset.f){ const el = $(`[data-field="${CSS.escape(t.dataset.f)}"]`); if (el) el.scrollIntoView({ block:'center' }); } }
       break;
     }
     case 'submit': {
       const miss = missingFields(S.answers);
-      if (miss.length){ S.showMissing = true; S.step = REVIEW; render(); window.scrollTo(0,0); break; }
+      if (miss.length){ S.showMissing = true; S.step = REVIEW; render(); scrollTop(); break; }
       const go = await askConfirm({ title:'Submit this survey?',
         body:'It will lock so nothing changes by accident, and go to the office as soon as you have signal. You can reopen it if something needs correcting.',
         confirmLabel:'Submit', cancelLabel:'Not yet' });
@@ -2285,7 +2310,7 @@ app.addEventListener('click', async (e) => {
       S.step = REVIEW; location.hash = '#/submitted';
       break;
     }
-    case 'viewForm': S.view = 'survey'; S.step = REVIEW; history.pushState(null, '', '#/surveys'); render(); window.scrollTo(0,0); break;
+    case 'viewForm': S.view = 'survey'; S.step = REVIEW; history.pushState(null, '', '#/surveys'); render(); scrollTop(); break;
     case 'reopen': S.record.status = 'DRAFT'; S.record.submittedAt = null; await persistNow(); render(); break;
     case 'pdf': await persistNow(); makePdf(S.answers); break;
     case 'csv': await persistNow(); await shareOrDownload(toCsv([S.record]), (S.answers.jobRef || 'survey') + '.csv', 'text/csv'); break;
@@ -2430,7 +2455,7 @@ function openSurvey(rec){
   S.record = rec;
   S.answers = Object.assign(emptyAnswers(), rec.answers || {});
   S.step = 0; S.showMissing = false; S.view = 'survey';
-  render(); window.scrollTo(0,0);
+  render(); scrollTop();
 }
 function currentRoute(){
   const h = location.hash.replace(/^#/, '');
@@ -2509,7 +2534,7 @@ async function renderAdmin(){
     app.innerHTML = `
     <div class="home door">
       <form id="adminSignIn" class="admin-card">
-        <img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+        <a class="brand-link" href="#/" aria-label="Home"><img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141"></a>
         <h1>Sign in</h1>
         <p class="sub">For the office. Engineers do not need an account.</p>
         <div class="field">
@@ -2531,7 +2556,7 @@ async function renderAdmin(){
   app.innerHTML = `
   <div class="home door">
     <div class="admin-card">
-      <img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+      <a class="brand-link" href="#/" aria-label="Home"><img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141"></a>
       <h1>Office</h1>
       <p class="admin-signed">Signed in as <b>${esc(adminEmail)}</b></p>
       <div class="home-actions">
