@@ -294,6 +294,51 @@ a.btn{text-decoration:none;color:#fff}
 .admin-info{font-size:14px;color:var(--muted);margin:0 0 14px;text-align:center}
 .admin-signed{font-size:14px;color:var(--muted);margin:0 0 20px;text-align:center}
 .admin-signed b{color:var(--ink)}
+/* ---------- admin sign in ---------- */
+.auth{position:relative;min-height:100dvh;display:flex;align-items:center;
+ justify-content:center;padding:24px;overflow:hidden}
+.auth:before{content:"";position:absolute;inset:-2px;z-index:0;opacity:.5;
+ background-image:linear-gradient(var(--line) 1px,transparent 1px),
+                  linear-gradient(90deg,var(--line) 1px,transparent 1px);
+ background-size:96px 96px;
+ -webkit-mask-image:radial-gradient(120% 85% at 50% 42%,#000 0%,transparent 78%);
+ mask-image:radial-gradient(120% 85% at 50% 42%,#000 0%,transparent 78%)}
+.auth .card{position:relative;z-index:1;width:100%;max-width:396px;background:var(--card);
+ border-radius:16px;border:1px solid var(--line);
+ box-shadow:0 1px 2px rgba(14,20,23,.05),0 14px 40px rgba(14,20,23,.09);
+ overflow:hidden}
+.auth .card>.inner{padding:30px 28px}
+.auth .mark{width:54px;height:54px;display:block;margin:0 auto 20px}
+.auth .brand{font-size:11px;letter-spacing:.17em;text-transform:uppercase;
+ color:var(--muted);text-align:center;margin-bottom:9px;font-weight:600}
+.auth h1{font-size:24px;line-height:1.15;letter-spacing:-.018em;color:var(--ink);
+ text-align:center;font-weight:700;margin-bottom:6px}
+.auth .sub{font-size:13.5px;color:var(--muted);text-align:center;
+ margin-bottom:26px;line-height:1.45}
+.auth label{display:block;font-size:12.5px;font-weight:600;color:var(--slate);
+ margin-bottom:6px}
+.auth input{width:100%;min-height:52px;border:1.5px solid var(--line);
+ border-radius:12px;background:var(--paper);padding:0 14px;font-size:16px;
+ color:var(--ink);font-family:inherit;
+ transition:border-color 140ms ease,background 140ms ease,box-shadow 140ms ease}
+.auth input:focus{outline:none;background:#fff;border-color:var(--primary);
+ box-shadow:0 0 0 3px rgba(31,95,107,.13)}
+.auth .field{margin-bottom:15px}
+.auth .btn{display:flex;align-items:center;justify-content:center;width:100%;
+ min-height:52px;border:0;border-radius:12px;background:var(--primary);color:#fff;
+ font-size:16.5px;font-weight:600;cursor:pointer;margin-top:10px;
+ font-family:inherit;transition:background 140ms ease,transform 90ms ease}
+.auth .btn:hover{background:#1A515C}
+.auth .btn:active{transform:translateY(1px)}
+.auth .btn:disabled{opacity:.6;cursor:default;transform:none}
+.auth .err{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:11px 13px;
+ background:#FCF0F0;border-left:3px solid #9B2C2C;border-radius:8px;
+ font-size:13.5px;line-height:1.45;color:#9B2C2C}
+.auth .err svg{width:16px;height:16px;flex:0 0 auto;margin-top:1px}
+.auth .foot{border-top:1px solid var(--line);background:var(--paper);padding:14px;
+ text-align:center}
+.auth .foot a{font-size:14px;color:var(--muted);text-decoration:none;font-weight:500}
+@media (max-height:680px){ .auth .card>.inner{padding:24px 22px} .auth .sub{margin-bottom:20px} }
 
 /* ---------- step strip (narrow) ----------
    Eight steps share the width equally: seven numbered squares plus a
@@ -2477,6 +2522,7 @@ app.addEventListener('click', async (e) => {
   switch (act){
     case 'filter': S.filter = v; S.selectedIds.clear(); S.selectMode = false; render(); break;
     case 'adminSignOut': await adminSignOut(); break;
+    case 'adminSignIn': await adminSignIn(); break;
     case 'del': await deleteSurvey(t.dataset.id); break;
     case 'startSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = true; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
     case 'cancelSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = false; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
@@ -2623,12 +2669,6 @@ app.addEventListener('change', (e) => {
 
 window.addEventListener('beforeunload', () => { if (S.record) persist(); });
 
-app.addEventListener('submit', async (e) => {
-  if (e.target.id !== 'adminSignIn') return;
-  e.preventDefault();
-  await adminSignIn();
-});
-
 let signInTimer = null;
 let signInLit = 0;
 
@@ -2698,8 +2738,11 @@ function signInSuccess(then){
 }
 
 async function adminSignIn(){
-  const emailEl = document.getElementById('adminEmail');
-  const passEl = document.getElementById('adminPass');
+  const btn = document.querySelector('.auth .btn');
+  if (btn && btn.disabled) return;
+  if (btn) btn.disabled = true;
+  const emailEl = document.getElementById('e');
+  const passEl = document.getElementById('p');
   const email = (emailEl && emailEl.value || '').trim();
   const pass = (passEl && passEl.value) || '';
   if (!email || !pass){ adminErr = 'Enter your email and password.'; renderAdmin(); return; }
@@ -2875,23 +2918,31 @@ async function renderAdmin(){
 
   if (!adminEmail){
     app.innerHTML = `
-    <div class="home door">
-      <form id="adminSignIn" class="admin-card">
-        <a class="brand-link" href="/" aria-label="Home"><img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141" draggable="false"></a>
-        <h1>Sign in</h1>
-        <p class="sub">For the office. Engineers do not need an account.</p>
-        <div class="field">
-          <label for="adminEmail">Email</label>
-          <input id="adminEmail" type="email" autocomplete="email" required>
+    <div class="auth">
+      <div class="card">
+        <div class="inner">
+          <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+            <rect width="64" height="64" rx="14" fill="#0E1417"/>
+            <rect x="19.6" y="19.6" width="10.1" height="10.1" fill="#ED1C24"/>
+            <g fill="none" stroke="#fff" stroke-width="4.6">
+              <rect x="17.3" y="17.3" width="29.4" height="29.4" rx="3"/>
+              <path d="M32 15.6v32.8M15.6 32h32.8"/></g>
+          </svg>
+          <p class="brand">GG Glass &amp; Glazing</p>
+          <h1>Sign in</h1>
+          <p class="sub">For the office. Engineers do not need an account.</p>
+          <div class="field"><label for="e">Email</label>
+            <input id="e" type="email" autocomplete="email"></div>
+          <div class="field"><label for="p">Password</label>
+            <input id="p" type="password" autocomplete="current-password"></div>
+          <button class="btn" data-act="adminSignIn">Sign in</button>
+          ${adminErr ? `<div class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/>
+              <path d="M12 8v5M12 16.5v.01"/></svg>
+            ${esc(adminErr)}</div>` : ''}
         </div>
-        <div class="field">
-          <label for="adminPass">Password</label>
-          <input id="adminPass" type="password" autocomplete="current-password" required>
-        </div>
-        ${adminErr ? `<p class="admin-err">${esc(adminErr)}</p>` : ''}
-        <button type="submit" class="btn">Sign in</button>
-        <a class="admin-back" href="/">Back</a>
-      </form>
+        <div class="foot"><a href="/">Back to site surveys</a></div>
+      </div>
     </div>`;
     return;
   }
