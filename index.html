@@ -650,9 +650,14 @@ function missingFields(a){
   }));
   return out;
 }
+function isFieldDone(f, a){
+  if (isEmpty(f, a[f.id])) return false;
+  if (Array.isArray(a._touched)) return a._touched.includes(f.id);
+  return true;
+}
 function sectionProgress(s, a){
   const req = visibleFields(s, a).filter(f => f.required);
-  const done = req.filter(f => !isEmpty(f, a[f.id]));
+  const done = req.filter(f => isFieldDone(f, a));
   return { total:req.length, done:done.length, complete:req.length>0 && done.length===req.length };
 }
 function overallProgress(a){
@@ -1340,7 +1345,17 @@ function fieldHTML(f, a){
 /* ================================================================
    Value changes
    ================================================================ */
+function touchField(fid){
+  if (!Array.isArray(S.answers._touched)){
+    S.answers._touched = [];
+    SECTIONS.forEach(s => s.fields.forEach(f => {
+      if (!isEmpty(f, S.answers[f.id])) S.answers._touched.push(f.id);
+    }));
+  }
+  if (!S.answers._touched.includes(fid)) S.answers._touched.push(fid);
+}
 function setValue(fieldId, value, forceRender){
+  touchField(fieldId);
   S.answers[fieldId] = value;
   queueSave();
   const deps = DEPENDENTS[fieldId];
@@ -1402,6 +1417,7 @@ sheet.addEventListener('click', (e) => {
     const v = t.dataset.v;
     const next = cur.includes(v) ? cur.filter(x => x !== v) : cur.concat([v]);
     S.answers[f.id] = next;
+    touchField(f.id);
     queueSave();
     drawSheet($('#sheetq') ? $('#sheetq').value : '');
   }
@@ -1450,6 +1466,7 @@ async function handleFiles(files){
   }
   if (!added.length) return;
   S.answers[photoTarget] = arr(S.answers[photoTarget]).concat(added);
+  touchField(photoTarget);
   await persistNow();
   renderKeepingScroll();
 }
@@ -1519,6 +1536,7 @@ function setupCanvases(){
       if (!drawing) return;
       drawing = false;
       S.answers[fid] = cv.toDataURL('image/png');
+      touchField(fid);
       queueSave();
     };
     cv.addEventListener('pointerup', end);
@@ -1760,6 +1778,8 @@ const MOCK = (function(){
           if (rolled.has(f.id)) return;
           rolled.add(f.id);
           a[f.id] = chance(0.72);
+          if (!Array.isArray(a._touched)) a._touched = [];
+          if (!a._touched.includes(f.id)) a._touched.push(f.id);
           added++; filled++;
           return;
         }
@@ -1767,6 +1787,8 @@ const MOCK = (function(){
         const v = valueFor(f, a);
         if (v === undefined || v === '') return;
         a[f.id] = v; added++; filled++;
+        if (!Array.isArray(a._touched)) a._touched = [];
+        if (!a._touched.includes(f.id)) a._touched.push(f.id);
       }));
       if (!added) break;
     }
@@ -1824,8 +1846,11 @@ async function findPostcode(){
     if (!res.ok) throw new Error(res.status === 404 ? 'notfound' : 'failed');
     const d = (await res.json()).result || {};
     S.answers.postcode = d.postcode || raw;
+    touchField('postcode');
     S.answers.town = d.admin_district || d.parish || S.answers.town || '';
+    touchField('town');
     S.answers.county = d.admin_county || d.region || S.answers.county || '';
+    touchField('county');
     S.lookupMsg = 'Found ' + S.answers.postcode + '. Check the town and add the street below.';
     await persistNow();
   } catch (e) {
@@ -2129,6 +2154,7 @@ app.addEventListener('click', async (e) => {
     case 'menu': openMenu(); break;
     case 'new': {
       const starting = emptyAnswers();
+      starting._touched = [];
       if (lastSurveyor()) starting.surveyedBy = lastSurveyor();
       const rec = { id: uid('s'), status:'DRAFT', sample:false, answers: starting, jobRef:'', client:'', siteName:'',
         surveyedBy: String(starting.surveyedBy || ''), surveyDate: todayISO(),
@@ -2146,7 +2172,14 @@ app.addEventListener('click', async (e) => {
     case 'del': await deleteSurvey(t.dataset.id, false); break;
     case 'step': S.step = Number(v); S.showMissing = false; render(); window.scrollTo(0,0); break;
     case 'prev': S.step = Math.max(0, S.step - 1); render(); window.scrollTo(0,0); break;
-    case 'next': S.step = Math.min(REVIEW, S.step + 1); render(); window.scrollTo(0,0); break;
+    case 'next': {
+      if (S.step < REVIEW){
+        const sec = SECTIONS[S.step];
+        if (sec) visibleFields(sec, S.answers).forEach(f => touchField(f.id));
+        queueSave();
+      }
+      S.step = Math.min(REVIEW, S.step + 1); render(); window.scrollTo(0,0); break;
+    }
     case 'jump': {
       const i = SECTIONS.findIndex(s => s.id === v);
       if (i >= 0){ S.step = i; render(); window.scrollTo(0,0);
@@ -2181,7 +2214,7 @@ app.addEventListener('click', async (e) => {
     case 'delphoto': {
       const i = Number(t.dataset.i);
       S.answers[fid] = arr(S.answers[fid]).filter((_, n) => n !== i);
-      await persistNow(); renderKeepingScroll();
+      touchField(fid); await persistNow(); renderKeepingScroll();
       break;
     }
     case 'clearsig': setValue(fid, '', true); break;
@@ -2200,18 +2233,19 @@ app.addEventListener('input', (e) => {
   if (el.dataset.act === 'panel'){
     const list = (S.answers.panels || []).slice();
     const i = Number(el.dataset.i);
-    if (list[i]){ list[i] = Object.assign({}, list[i], { [el.dataset.k]: el.value }); S.answers.panels = list; queueSave(); }
+    if (list[i]){ list[i] = Object.assign({}, list[i], { [el.dataset.k]: el.value }); S.answers.panels = list; touchField('panels'); queueSave(); }
     return;
   }
   if (el.dataset.act === 'caption'){
     const list = arr(S.answers[el.dataset.f]).slice();
     const i = Number(el.dataset.i);
-    if (list[i]){ list[i] = Object.assign({}, list[i], { caption: el.value }); S.answers[el.dataset.f] = list; queueSave(); }
+    if (list[i]){ list[i] = Object.assign({}, list[i], { caption: el.value }); S.answers[el.dataset.f] = list; touchField(el.dataset.f); queueSave(); }
     return;
   }
   const fid = el.dataset.f;
   if (!fid || !FIELD_INDEX[fid]) return;
   if (el.dataset.bool) return;
+  touchField(fid);
   S.answers[fid] = el.value;
   queueSave();
 });
