@@ -115,6 +115,7 @@ main{flex:1;padding-block:var(--pad) 28px}
    filters and the first card, flush right with Menu. A narrower centred
    button floats against a left aligned page. */
 .barinner{width:100%}
+.barinner.list-bar{max-width:620px;margin:0 auto}
 .row{display:flex;gap:10px}
 .row .btn{flex:1}
 .row .btn.grow2{flex:2}
@@ -1031,7 +1032,7 @@ function renderList(){
     </div>
     ${Store.mode !== 'memory' ? `<p class="storagenote">Saved on this device and sent to the office.</p>` : ''}
   </main>
-  <div class="bottombar"><div class="wrap"><div class="barinner"><button class="btn" data-act="new">Start a new survey</button></div></div></div>`;
+  <div class="bottombar"><div class="wrap"><div class="barinner list-bar"><button class="btn" data-act="new">Start a new survey</button></div></div></div>`;
   syncStickyOffsets();
 }
 
