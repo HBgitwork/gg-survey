@@ -1997,22 +1997,20 @@ function emailToOffice(){
 /* ================================================================
    Menu
    ================================================================ */
+let syncFeedback = '';
 function openMenu(){
   sheetField = null;
   sheet.className = '';
   sheetBody.innerHTML = `
     <div class="sheet-head"><h3>Menu</h3><button class="linkbtn" data-act="sheetclose">Close</button></div>
     <div class="sheet-list" style="padding:var(--pad)">
-      <button class="btn secondary" data-act="csvall" style="margin-bottom:10px">Export all surveys to CSV</button>
       <button class="btn secondary" data-act="syncnow" style="margin-bottom:10px">Sync now</button>
-      <button class="btn secondary" data-act="backup" style="margin-bottom:10px">Back up everything to a file</button>
-      <button class="btn secondary" data-act="restore" style="margin-bottom:18px">Restore from a backup file</button>
+      <a class="btn secondary" href="#/admin" data-act="sheetclose" style="margin-bottom:10px">Sign in</a>
       ${S.record ? `<button class="btn mock" data-act="mockall" style="margin-bottom:10px">Fill every step with sample data</button>
         ${S.record.sample ? `<button class="btn ghost" data-act="clearsample" style="margin-bottom:10px">Clear the sample data marker</button>` : ''}
         <button class="btn danger" data-act="deletethis" style="margin-bottom:18px">Delete this survey</button>` : ''}
+      <p class="hint" id="syncFeedback">${esc(syncFeedback)}</p>
       <p class="hint">Storage in use: ${esc(Store.mode)}. ${esc(STORAGE_LABEL[Store.mode])}</p>
-      ${S.record ? `<button class="btn danger" data-act="deletecurrent" style="margin-bottom:18px">Delete this survey</button>` : ''}
-      <p class="hint">Surveys can also be deleted from the list.</p>
     </div>`;
   openDialog(sheet);
 }
@@ -2021,25 +2019,30 @@ sheet.addEventListener('click', async (e) => {
   if (!t) return;
   const act = t.dataset.act;
   if (act === 'sheetclose'){ sheet.close(); return; }
-  if (act === 'csvall'){
-    sheet.close();
-    const recs = await Store.all();
-    if (!recs.length) return alert('There are no surveys to export yet.');
-    await shareOrDownload(toCsv(recs), 'gg-surveys-' + todayISO() + '.csv', 'text/csv');
-  }
-  if (act === 'backup'){
-    sheet.close();
-    const recs = await Store.all();
-    await shareOrDownload(JSON.stringify({ app:'gg-survey', version:1, exported:new Date().toISOString(), records:recs }, null, 0),
-      'gg-survey-backup-' + todayISO() + '.json', 'application/json');
-  }
-  if (act === 'restore'){ sheet.close(); document.getElementById('restorein').click(); }
-  if (act === 'syncnow'){ sheet.close(); syncPending(); }
+  if (act === 'syncnow'){ await runSyncNow(); }
   if (act === 'mockall'){ sheet.close(); await fillWithSample(null); }
   if (act === 'clearsample'){ sheet.close(); await clearSampleMarker(); }
   if (act === 'deletethis'){ const id = S.record && S.record.id; sheet.close(); if (id) await deleteSurvey(id); }
-  if (act === 'deletecurrent'){ sheet.close(); await deleteSurvey(S.record.id, true); }
 });
+
+async function runSyncNow(){
+  const before = pendingSyncCount();
+  if (!sbClient || !navigator.onLine){
+    syncFeedback = 'No connection. It will go on its own when you have signal.';
+  } else {
+    await syncPending();
+    await loadList();
+    const after = pendingSyncCount();
+    const sent = before - after;
+    if (sent > 0){
+      syncFeedback = 'Sent ' + sent + ' survey' + (sent === 1 ? '' : 's') + '.';
+    } else {
+      syncFeedback = 'Everything is up to date.';
+    }
+  }
+  const fb = document.getElementById('syncFeedback');
+  if (fb) fb.textContent = syncFeedback;
+}
 
 document.getElementById('restorein').addEventListener('change', (e) => {
   const file = e.target.files && e.target.files[0];
