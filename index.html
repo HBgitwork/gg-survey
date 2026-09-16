@@ -55,12 +55,13 @@
 @media (pointer:fine){ :root{--tap:46px} }
 
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;height:100%;overflow:hidden;overscroll-behavior:none}
 html{background:var(--paper)}
 body{
   margin:0; background:var(--paper); color:var(--slate);
   font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased; overscroll-behavior:none;
+  height:100%;overflow:hidden;
 }
 button{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:4px}
@@ -82,8 +83,8 @@ h1,h2,label,button,.btn,.linkbtn,.step,.snav,.pill,.filters button,.yesno span,.
 .wrap{width:100%;min-width:0;max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad)}
 
 /* ---------- shell ---------- */
-#app{min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);visibility:hidden}
-.topbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line);
+#app{height:100dvh;display:flex;flex-direction:column;background:var(--paper);visibility:hidden;overflow:hidden}
+.topbar{flex:0 0 auto;background:var(--paper);border-bottom:1px solid var(--line);
   padding-block:max(env(safe-area-inset-top),14px) 14px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
 /* Constrain header contents to the same measure as the content beneath.
@@ -118,73 +119,35 @@ h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700;letter-spacing:
 .eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--primary);margin:0 0 4px}
 @media (min-width:768px){ h1{font-size:28px} h2{font-size:26px} }
 
-main{flex:1;padding-block:var(--pad) 28px}
-.bottombar{position:sticky;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);
+main{flex:1 1 auto;min-height:0;padding-block:var(--pad) 28px}
+.bottombar{flex:0 0 auto;background:var(--card);border-top:1px solid var(--line);
   padding-block:12px max(env(safe-area-inset-bottom),12px)}
+/* Survey list: main is a flex column — filters pin, card list scrolls. */
+#app > main{display:flex;flex-direction:column;overflow:hidden}
+/* Survey screen: the form body scrolls inside the content column. */
+#secbody{overflow-y:auto;overscroll-behavior:contain}
 
 /* desktop two-column shell */
-.layout{flex:1;display:flex;flex-direction:column;min-width:0}
-.layout > .content{display:flex;flex-direction:column;flex:1;min-width:0}
+.layout{flex:1 1 0;min-height:0;display:flex;flex-direction:column;min-width:0}
+.layout > .content{display:flex;flex-direction:column;flex:1 1 0;min-width:0;min-height:0;overflow:hidden}
 .sidenav{display:none}
 @media (min-width:1024px){
   .layout{width:100%;max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad);
-    display:grid;grid-template-columns:var(--side) minmax(0,1fr);gap:0 var(--gutter);align-items:start}
-  .layout > .content{min-height:calc(100dvh - 86px)}
+    display:grid;grid-template-columns:var(--side) minmax(0,1fr);gap:0 var(--gutter);align-items:stretch}
+  .layout > .content{min-height:0}
   .layout main,.layout .bottombar{padding-inline:0}
   .layout .wrap{padding-inline:0;max-width:none}
   .layout .barinner{max-width:var(--form)}
   .layout .bottombar{background:var(--paper);border-top:1px solid var(--line)}
-  .sidenav{display:block;position:sticky;top:86px;padding-block:var(--pad);max-height:calc(100dvh - 100px);overflow-y:auto}
+  .sidenav{display:block;padding-block:var(--pad);overflow-y:auto}
   .steps{display:none!important}
   .topbar .only-narrow{display:none}
 }
 @media (max-width:1023px){ .sidenav{display:none!important} }
 
-/* On a phone the survey fills the screen: the header and action bar stay
-   fixed and only the form scrolls, so the bar cannot rubber-band away.
-   Three flex children of #app: header+steps (0 0 auto), the form (1 1 auto,
-   scrolls), the action bar (0 0 auto). The bar is a normal flex child, not
-   sticky, so overflow:hidden on the parent cannot lose it. */
-@media (max-width:1023px){
-  #app:has(.layout){height:100dvh;min-height:0;overflow:hidden}
-  #app:has(.layout) .topbar{position:static;flex:0 0 auto}
-  #app:has(.layout) .steps{position:static;flex:0 0 auto}
-  #app:has(.layout) .layout{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
-  #app:has(.layout) .layout > .content{flex:1 1 0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-  #app:has(.layout) #secbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-  #app:has(.layout) .bottombar{position:static;flex:0 0 auto}
-}
-
-/* On a phone every screen fills the viewport exactly: the header and
-   action bar stay fixed and only the content scrolls, so the primary
-   button is never hidden under the browser chrome. */
-@media (max-width:1023px){
-  /* Survey list */
-  #app:has(.topbar-list){height:100dvh;overflow:hidden}
-  #app:has(.topbar-list) .topbar{position:static;flex:0 0 auto}
-  #app:has(.topbar-list) main{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-  #app:has(.topbar-list) .filters{flex:0 0 auto}
-  #app:has(.topbar-list) .srows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-  #app:has(.topbar-list) .bottombar{position:static;flex:0 0 auto}
-
-  /* Homepage */
-  #app:has(.home.landing){height:100dvh;overflow:hidden}
-  #app:has(.home.landing) .home.landing{height:100dvh;overflow:hidden}
-  #app:has(.home.landing) .home.landing .panel{overflow-y:auto;overscroll-behavior:contain;min-height:0}
-
-  /* Confirmation */
-  #app:has(.confirm){height:100dvh;overflow:hidden}
-  #app:has(.confirm) .confirm{height:100dvh;overflow-y:auto;overscroll-behavior:contain}
-
-  /* Admin sign-in and office */
-  #app:has(.home.door){height:100dvh;overflow:hidden}
-  #app:has(.home.door) .home.door{height:100dvh;overflow-y:auto;overscroll-behavior:contain}
-}
-
-/* A phone on its side has barely any height. Let the header scroll away so the
-   sticky bars do not swallow the form. */
+/* A phone on its side has barely any height. Tighten the padding so the
+   form does not need as much scrolling. */
 @media (max-height:560px){
-  .topbar{position:static}
   .topbar .only-narrow{display:none}
   main{padding-block:12px 16px}
   .field{margin-bottom:18px}
@@ -241,13 +204,13 @@ a.btn{text-decoration:none;color:#fff}
 .pill.SENT{background:var(--success-soft);color:var(--success)}
 
 /* ---------- homepage ---------- */
-.home.landing{min-height:100dvh;display:flex;flex-direction:column}
+.home.landing{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .home.landing .shot{height:32dvh;min-height:200px;position:relative;overflow:hidden;
   flex:0 0 auto;background:var(--ink)}
 .home.landing .shot img{width:100%;height:100%;object-fit:cover;object-position:60% 55%;display:block}
 .home.landing .shot:after{content:"";position:absolute;inset:auto 0 0 0;height:70px;
   background:linear-gradient(180deg,rgba(242,241,239,0),var(--paper))}
-.home.landing .panel{flex:1;display:flex;flex-direction:column;justify-content:center;
+.home.landing .panel{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;justify-content:center;
   padding:26px var(--pad) max(env(safe-area-inset-bottom),28px);
   max-width:560px;margin-inline:auto;width:100%;
   border:0;border-radius:0;outline:0;box-shadow:none;background:transparent}
@@ -267,7 +230,7 @@ a.btn{text-decoration:none;color:#fff}
   text-decoration:none;min-height:44px}
 @media (min-width:900px){
   .home.landing{flex-direction:row-reverse}
-  .home.landing .shot{height:100dvh;width:46%;min-height:0}
+  .home.landing .shot{height:100%;width:46%;min-height:0}
   .home.landing .shot:after{inset:0 auto 0 0;width:70px;height:auto;
     background:linear-gradient(90deg,var(--paper),rgba(242,241,239,0))}
   .home.landing .panel{width:54%;max-width:none;padding:0;align-items:center}
@@ -280,7 +243,7 @@ a.btn{text-decoration:none;color:#fff}
   .home.landing .points{gap:9px;margin-bottom:22px}
 }
 .home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
-.home.door{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;min-height:100dvh;padding-block:var(--pad) 15dvh;
+.home.door{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;padding-block:var(--pad) 15dvh;
   background:radial-gradient(ellipse 90% 65% at 50% 30%, rgba(10,90,104,0.045), transparent 72%)}
 .home-actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px}
 .home-primary{font-size:18px;font-weight:700;min-height:56px}
@@ -289,8 +252,8 @@ a.btn{text-decoration:none;color:#fff}
 .home-lead{font-size:14px;font-weight:400;color:var(--muted);margin:0 0 36px;max-width:380px;line-height:1.5}
 
 /* ---------- confirmation screen ---------- */
-.confirm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:var(--pad) 15dvh;text-align:center;min-height:100dvh}
+.confirm{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:var(--pad) 15dvh;text-align:center}
 .confirm-tick{width:64px;height:64px;border-radius:50%;background:var(--success-soft);
   display:flex;align-items:center;justify-content:center;margin:0 0 20px}
 .confirm-tick svg{width:32px;height:32px}
@@ -322,9 +285,9 @@ a.btn{text-decoration:none;color:#fff}
 /* ---------- step strip (narrow) ----------
    Eight steps share the width equally: seven numbered squares plus a
    Review button. Nothing scrolls or gets cut off at any phone width. */
-.steps{display:flex;gap:6px;padding-block:10px 12px;background:var(--paper);
+.steps{flex:0 0 auto;display:flex;gap:6px;padding-block:10px 12px;background:var(--paper);
   border-bottom:1px solid var(--line);
-  position:sticky;top:var(--steps-top,0);z-index:19;width:100%;max-width:100%;padding-inline:var(--pad)}
+  width:100%;max-width:100%;padding-inline:var(--pad)}
 .step{flex:1 1 0;min-width:0;height:34px;padding:0;border-radius:var(--r);border:1px solid var(--line);
   background:var(--card);color:var(--steel);font-weight:600;font-size:15px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -493,12 +456,13 @@ body.modal-open{ overflow:hidden }
 @media (min-width:680px){ .grid3{grid-template-columns:1fr 1fr 90px 1.3fr} }
 
 /* ---------- list screen ---------- */
-.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none;max-width:620px;margin:0 auto}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none;max-width:620px;margin:0 auto;flex:0 0 auto}
 .filters::-webkit-scrollbar{display:none}
 .filters button{flex:0 0 auto;min-height:42px;padding:0 15px;border-radius:var(--r);border:1px solid var(--line);
   background:var(--card);color:var(--steel);font-size:14px;font-weight:500;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
-.srows{display:grid;grid-template-columns:1fr;gap:10px;max-width:620px;margin:0 auto;align-content:start}
+.srows{display:grid;grid-template-columns:1fr;gap:10px;max-width:620px;margin:0 auto;align-content:start;
+  flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .srow{display:flex;align-items:flex-start;background:var(--card);border:1px solid var(--line);
   border-radius:12px;overflow:hidden;box-shadow:0 1px 3px -1px rgba(14,20,23,0.06);
   transition:box-shadow 150ms ease,border-color 150ms ease}
@@ -646,10 +610,15 @@ body.modal-open{ overflow:hidden }
 #boot.filled .boot-win .p{fill:#ED1C24;transition:fill 320ms ease}
 #boot.filled .boot-msg{color:var(--primary);font-weight:600}
 #boot.done{opacity:0;transition:opacity 220ms ease;pointer-events:none}
+.boot-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:var(--paper);
+  flex:1 1 auto;min-height:0}
+.boot-screen.filled .boot-win .p{fill:#ED1C24;transition:fill 320ms ease}
+.boot-screen.filled .boot-msg{color:var(--primary);font-weight:600}
+.boot-screen.done{opacity:0;transition:opacity 220ms ease;pointer-events:none}
 @media (prefers-reduced-motion:reduce){
   .boot-win .p{transition:none}
   .boot-msg{transition:none}
-  #boot.done{transition:opacity 220ms ease!important}
+  #boot.done,.boot-screen.done{transition:opacity 220ms ease!important}
 }
 /* Fatal error screen, shown if the app cannot start. */
 .boot-fatal{max-width:470px;margin:0 auto;padding:44px var(--pad) 32px}
@@ -1172,11 +1141,6 @@ async function syncOne(rec){
   finally { syncRunning = false; }
 }
 
-/* Keeps the horizontal step strip sitting directly under the sticky header. */
-function syncStickyOffsets(){
-  const bar = $('.topbar');
-  if (bar) document.documentElement.style.setProperty('--steps-top', Math.round(bar.getBoundingClientRect().height) + 'px');
-}
 
 /* ================================================================
    List screen
@@ -1217,7 +1181,6 @@ function renderList(){
     ${Store.mode !== 'memory' ? `<p class="storagenote">Saved on this device and sent to the office.</p>` : ''}
   </main>
   ${recs.length ? `<div class="bottombar"><div class="wrap"><div class="barinner list-bar"><button class="btn" data-act="new">Start a new survey</button></div></div></div>` : ''}`;
-  syncStickyOffsets();
 }
 
 const PDF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>';
@@ -1309,7 +1272,6 @@ function renderSurvey(){
   </div>`;
 
   setupCanvases();
-  syncStickyOffsets();
   checkTitleTruncation();
 }
 
@@ -2523,22 +2485,91 @@ app.addEventListener('submit', async (e) => {
   await adminSignIn();
 });
 
+let signInTimer = null;
+let signInLit = 0;
+
+function signInLoaderHTML(msg){
+  return `<div id="signinLoader" class="boot-screen" role="status" aria-live="polite">
+    <svg class="boot-win" viewBox="0 0 64 64" aria-hidden="true">
+      <rect class="p p1" x="19.6" y="19.6" width="10.1" height="10.1"/>
+      <rect class="p p2" x="34.3" y="19.6" width="10.1" height="10.1"/>
+      <rect class="p p3" x="34.3" y="34.3" width="10.1" height="10.1"/>
+      <rect class="p p4" x="19.6" y="34.3" width="10.1" height="10.1"/>
+      <g fill="none" stroke="var(--ink)" stroke-width="4.6">
+        <rect x="17.3" y="17.3" width="29.4" height="29.4" rx="3"/>
+        <path d="M32 15.6v32.8M15.6 32h32.8"/>
+      </g>
+    </svg>
+    <p class="boot-msg">${esc(msg)}</p>
+  </div>`;
+}
+
+function startSignInAnimation(firstMsg){
+  stopSignInAnimation();
+  const panes = document.querySelectorAll('#signinLoader .boot-win .p');
+  const msgEl = document.querySelector('#signinLoader .boot-msg');
+  const TIMES = [250, 500, 750, 1000];
+  const msgs = [firstMsg || 'Signing in', firstMsg || 'Signing in', 'Checking access', 'Checking access'];
+  signInLit = 0;
+  const startT = performance.now();
+  signInTimer = setInterval(() => {
+    const elapsed = performance.now() - startT;
+    while (signInLit < 4 && elapsed >= TIMES[signInLit]){
+      if (panes[signInLit]) panes[signInLit].classList.add('lit');
+      if (msgEl) msgEl.textContent = msgs[signInLit];
+      signInLit++;
+    }
+    if (signInLit >= 4){ clearInterval(signInTimer); signInTimer = null; }
+  }, 50);
+}
+
+function stopSignInAnimation(){
+  if (signInTimer){ clearInterval(signInTimer); signInTimer = null; }
+}
+
+function waitForSignInAnimation(){
+  return new Promise(resolve => {
+    if (signInLit >= 4) return resolve();
+    const check = setInterval(() => {
+      if (signInLit >= 4 || !signInTimer){ clearInterval(check); resolve(); }
+    }, 50);
+  });
+}
+
+function signInSuccess(then){
+  const loader = document.getElementById('signinLoader');
+  if (!loader) return;
+  const msgEl = loader.querySelector('.boot-msg');
+  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if (msgEl) msgEl.textContent = 'Ready';
+  loader.classList.add('filled');
+  setTimeout(() => {
+    if (!document.getElementById('signinLoader')) return;
+    loader.classList.add('done');
+    setTimeout(() => {
+      if (!document.getElementById('signinLoader')) return;
+      then();
+    }, reduce ? 0 : 220);
+  }, reduce ? 0 : 300);
+}
+
 async function adminSignIn(){
   const emailEl = document.getElementById('adminEmail');
   const passEl = document.getElementById('adminPass');
   const email = (emailEl && emailEl.value || '').trim();
   const pass = (passEl && passEl.value) || '';
   if (!email || !pass){ adminErr = 'Enter your email and password.'; renderAdmin(); return; }
-  const btn = document.querySelector('#adminSignIn button[type=submit]');
-  if (btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
   adminErr = '';
+  app.innerHTML = signInLoaderHTML('Signing in');
+  startSignInAnimation('Signing in');
   try {
-    if (!sbClient){ adminErr = 'Cannot reach the server. Check your connection and try again.'; renderAdmin(); return; }
+    if (!sbClient){ stopSignInAnimation(); adminErr = 'Cannot reach the server. Check your connection and try again.'; renderAdmin(); return; }
     const { data: existing } = await sbClient.auth.getSession();
     if (existing && existing.session && await isAnonymous(existing.session)){
       const recs = await Store.all();
       const unsent = recs.filter(r => r.status === 'SUBMITTED' && needsSync(r)).length;
       if (unsent > 0){
+        stopSignInAnimation();
         adminErr = 'This device has ' + unsent + ' survey' + (unsent === 1 ? '' : 's') + ' still to send. Sync them first from the Menu.';
         renderAdmin();
         return;
@@ -2547,6 +2578,7 @@ async function adminSignIn(){
     }
     const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
     if (error || !data.user){
+      stopSignInAnimation();
       adminErr = (error && error.message) || 'Sign in failed. Check your email and password.';
       try { await sbClient.auth.signInAnonymously(); } catch(e){}
       renderAdmin();
@@ -2554,6 +2586,7 @@ async function adminSignIn(){
     }
     const ok = await checkOfficeAccess(data.user.id);
     if (!ok){
+      stopSignInAnimation();
       await sbClient.auth.signOut();
       adminErr = 'This account does not have office access.';
       try { await sbClient.auth.signInAnonymously(); } catch(e){}
@@ -2562,8 +2595,10 @@ async function adminSignIn(){
     }
     adminEmail = data.user.email || email;
     adminErr = '';
-    renderAdmin();
+    await waitForSignInAnimation();
+    signInSuccess(() => renderAdmin());
   } catch(e){
+    stopSignInAnimation();
     adminErr = 'Something went wrong. Try again.';
     try { await sbClient.auth.signInAnonymously(); } catch(e2){}
     renderAdmin();
@@ -2580,6 +2615,7 @@ async function adminSignOut(){
 }
 
 window.addEventListener('hashchange', () => {
+  stopSignInAnimation();
   if (S.record) persist();
   const r = currentRoute();
   if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; loadList(); }
@@ -2588,8 +2624,8 @@ window.addEventListener('hashchange', () => {
   else render();
 });
 window.addEventListener('online', () => syncPending());
-window.addEventListener('resize', () => { syncStickyOffsets(); resizeCanvases(); checkTitleTruncation(); }, { passive:true });
-window.addEventListener('orientationchange', () => setTimeout(() => { syncStickyOffsets(); resizeCanvases(); }, 250));
+window.addEventListener('resize', () => { resizeCanvases(); checkTitleTruncation(); }, { passive:true });
+window.addEventListener('orientationchange', () => setTimeout(() => { resizeCanvases(); }, 250));
 
 /* ================================================================
    Boot
@@ -2647,18 +2683,21 @@ async function checkOfficeAccess(uid){
 
 async function renderAdmin(){
   if (adminChecking){
-    app.innerHTML = `<div class="home"><p class="home-lead">Checking…</p></div>`;
+    app.innerHTML = signInLoaderHTML('Checking access');
+    startSignInAnimation('Checking access');
     try {
-      if (!sbClient){ adminChecking = false; adminErr = 'Cannot reach the server. Check your connection and try again.'; return renderAdmin(); }
+      if (!sbClient){ stopSignInAnimation(); adminChecking = false; adminErr = 'Cannot reach the server. Check your connection and try again.'; return renderAdmin(); }
       const { data: sd } = await sbClient.auth.getSession();
       const session = sd && sd.session;
       if (!session || await isAnonymous(session)){
+        stopSignInAnimation();
         adminChecking = false; adminErr = ''; return renderAdmin();
       }
       const uid = session.user.id;
       adminEmail = session.user.email || '';
       const ok = await checkOfficeAccess(uid);
       if (!ok){
+        stopSignInAnimation();
         await sbClient.auth.signOut();
         adminEmail = null;
         adminChecking = false;
@@ -2667,8 +2706,10 @@ async function renderAdmin(){
         return renderAdmin();
       }
       adminChecking = false; adminErr = '';
-      return renderAdmin();
+      await waitForSignInAnimation();
+      signInSuccess(() => renderAdmin());
     } catch(e){
+      stopSignInAnimation();
       adminChecking = false; adminErr = 'Something went wrong. Try again.'; return renderAdmin();
     }
   }
