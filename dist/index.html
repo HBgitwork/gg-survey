@@ -96,7 +96,8 @@ button{font:inherit;color:inherit}
 }
 @media (max-width:479px){ .brand{height:32px} }
 a.linkbtn{text-decoration:none}
-.sidenav-back{display:block;margin-bottom:16px}
+.sidenav-back{display:block;margin-bottom:16px;min-height:44px;padding:8px 0;width:100%;text-align:left}
+.sidenav-back:hover{color:var(--ink)}
 h1{font-size:24px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .sub{font-size:14px;font-weight:400;color:var(--muted);margin:0}
@@ -135,6 +136,32 @@ main{flex:1;padding-block:var(--pad) 28px}
   #app:has(.layout) .layout > .content{min-height:0;overflow:hidden}
   #app:has(.layout) #secbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
   #app:has(.layout) .bottombar{position:static;flex:0 0 auto}
+}
+
+/* On a phone every screen fills the viewport exactly: the header and
+   action bar stay fixed and only the content scrolls, so the primary
+   button is never hidden under the browser chrome. */
+@media (max-width:1023px){
+  /* Survey list */
+  #app:has(.topbar-list){height:100dvh;overflow:hidden}
+  #app:has(.topbar-list) .topbar{position:static;flex:0 0 auto}
+  #app:has(.topbar-list) main{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  #app:has(.topbar-list) .filters{flex:0 0 auto}
+  #app:has(.topbar-list) .srows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  #app:has(.topbar-list) .bottombar{position:static;flex:0 0 auto}
+
+  /* Homepage */
+  #app:has(.home.landing){height:100dvh;overflow:hidden}
+  #app:has(.home.landing) .home.landing{height:100dvh;overflow:hidden}
+  #app:has(.home.landing) .home.landing .panel{overflow-y:auto;overscroll-behavior:contain;min-height:0}
+
+  /* Confirmation */
+  #app:has(.confirm){height:100dvh;overflow:hidden}
+  #app:has(.confirm) .confirm{height:100dvh;overflow-y:auto;overscroll-behavior:contain}
+
+  /* Admin sign-in and office */
+  #app:has(.home.door){height:100dvh;overflow:hidden}
+  #app:has(.home.door) .home.door{height:100dvh;overflow-y:auto;overscroll-behavior:contain}
 }
 
 /* A phone on its side has barely any height. Let the header scroll away so the
@@ -236,7 +263,7 @@ a.btn{text-decoration:none;color:#fff}
   .home.landing .points{gap:9px;margin-bottom:22px}
 }
 .home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
-.home.door{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;min-height:100dvh;padding-block:var(--pad) 15vh;
+.home.door{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;min-height:100dvh;padding-block:var(--pad) 15dvh;
   background:radial-gradient(ellipse 90% 65% at 50% 30%, rgba(10,90,104,0.045), transparent 72%)}
 .home-actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px}
 .home-primary{font-size:18px;font-weight:700;min-height:56px}
@@ -246,7 +273,7 @@ a.btn{text-decoration:none;color:#fff}
 
 /* ---------- confirmation screen ---------- */
 .confirm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:var(--pad) 15vh;text-align:center;min-height:100dvh}
+  padding:var(--pad) 15dvh;text-align:center;min-height:100dvh}
 .confirm-tick{width:64px;height:64px;border-radius:50%;background:var(--success-soft);
   display:flex;align-items:center;justify-content:center;margin:0 0 20px}
 .confirm-tick svg{width:32px;height:32px}
@@ -287,10 +314,11 @@ a.btn{text-decoration:none;color:#fff}
 .step[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .step.done{background:var(--success-soft);border-color:var(--success);color:var(--success)}
 .step[aria-current="step"].done{background:var(--ink);border-color:var(--ink);color:#fff}
-.step-review .step-review-chevron{display:none}
-@media (max-width:379px){
+.step-review-icon{display:none}
+@media (max-width:599px){
+  .step-review{margin-left:4px;color:var(--primary)}
   .step-review .step-review-label{display:none}
-  .step-review .step-review-chevron{display:block}
+  .step-review .step-review-icon{display:flex}
 }
 
 /* ---------- side nav (wide) ---------- */
@@ -462,12 +490,13 @@ body.modal-open{ overflow:hidden }
   background:none;border:0;padding:12px 0 12px 16px;cursor:pointer}
 .srow-main:active{background:var(--primary-soft)}
 .srow-pills{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;
-  align-items:flex-start;padding:12px 8px 0 0;min-height:24px}
+  align-items:center;padding:0 8px 0 0;min-height:24px;align-self:flex-start;margin-top:12px}
 .srow-actions{display:flex;flex:0 0 96px;align-self:stretch;align-items:center;
-  justify-content:center;gap:8px;padding:0 12px}
-.srow-act{display:flex;align-items:center;justify-content:center;
+  justify-content:flex-start;gap:8px;padding:0 4px}
+.srow-act{display:flex;align-items:center;justify-content:center;flex:0 0 40px;
   width:40px;height:40px;background:none;border:0;border-radius:8px;
   cursor:pointer;color:var(--muted);transition:background 150ms ease,color 150ms ease}
+.srow-slot-empty{flex:0 0 40px;width:40px;height:40px}
 .srow-act svg{width:18px;height:18px;flex:0 0 auto}
 .srow-pdf{color:var(--primary)}
 .srow-pdf:hover,.srow-pdf:active{background:var(--primary-soft)}
@@ -481,7 +510,7 @@ body.modal-open{ overflow:hidden }
 .srow-site{display:block;font-size:15px;color:var(--slate);margin-bottom:1px}
 .srow-meta{display:block;font-size:13px;color:var(--muted)}
 .blank{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-  padding:64px 20px;grid-column:1/-1;min-height:50vh}
+  padding:64px 20px;grid-column:1/-1;min-height:50dvh}
 .blank-logo{height:96px;width:auto;margin:0 0 20px}
 .blank h3{margin:0 0 28px;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .blank .btn{max-width:280px}
@@ -1179,9 +1208,9 @@ const PDF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 function rowHTML(r){
   const pct = overallProgress(r.answers || {}).pct;
   const name = r.jobRef || r.siteName || 'this survey';
-  const pdfBtn = r.status === 'SUBMITTED'
+  const pdfSlot = r.status === 'SUBMITTED'
     ? `<button class="srow-act srow-pdf" data-act="listpdf" data-id="${esc(r.id)}" title="Download PDF" aria-label="Download PDF">${PDF_ICON}</button>`
-    : '';
+    : `<span class="srow-slot-empty" aria-hidden="true"></span>`;
   return `<div class="srow">
     <button class="srow-main" data-act="open" data-id="${esc(r.id)}">
       <span class="srow-ref">${esc(r.jobRef || 'No job reference')}</span>
@@ -1190,7 +1219,7 @@ function rowHTML(r){
     </button>
     <span class="srow-pills">${r.sample ? '<span class="pill SAMPLE">SAMPLE</span>' : ''}<span class="pill ${esc(r.status)}">${esc(r.status)}</span>${syncPill(r)}</span>
     <div class="srow-actions">
-      ${pdfBtn}
+      ${pdfSlot}
       <button class="srow-act srow-del" data-act="del" data-id="${esc(r.id)}" title="Delete" aria-label="Delete ${esc(name)}">${BIN_ICON}</button>
     </div>
   </div>`;
@@ -1237,12 +1266,12 @@ function renderSurvey(){
       return `<button class="step${p.complete?' done':''}" data-act="step" data-v="${i}" ${S.step===i?'aria-current="step"':''}
         aria-label="Section ${s.number}, ${esc(s.title)}${p.complete?', complete':''}">${(p.complete && S.step !== i) ? '&#10003;' : s.number}</button>`;
     }).join('')}
-    <button class="step step-review" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''} aria-label="Review and submit"><span class="step-review-label">Review</span><span class="step-review-chevron" aria-hidden="true">&rsaquo;</span></button>
+    <button class="step step-review" data-act="step" data-v="${REVIEW}" ${S.step===REVIEW?'aria-current="step"':''} aria-label="Review and submit" title="Review and submit"><span class="step-review-label">Review</span><svg class="step-review-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="17" height="17"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14l2 2 4-4"/></svg></button>
   </nav>
 
   <div class="layout">
     <aside class="sidenav" aria-label="Survey sections">
-      <a class="linkbtn sidenav-back" href="#/surveys">&lsaquo; Site surveys</a>
+      <button class="linkbtn sidenav-back" data-act="back">&lsaquo; Site surveys</button>
       <h3>${esc(surveyTitle(a))}</h3>
       ${progBlock}
       <ol>
