@@ -177,18 +177,51 @@ a.btn{text-decoration:none;color:#fff}
 .pill.SENT{background:var(--success-soft);color:var(--success)}
 
 /* ---------- homepage ---------- */
-.home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center}
-.home.door{min-height:100dvh;padding-block:var(--pad) 15vh;
+.home.landing{min-height:100dvh;display:flex;flex-direction:column}
+.home.landing .shot{height:32dvh;min-height:200px;position:relative;overflow:hidden;
+  flex:0 0 auto;background:var(--ink)}
+.home.landing .shot img{width:100%;height:100%;object-fit:cover;object-position:60% 55%;display:block}
+.home.landing .shot:after{content:"";position:absolute;inset:auto 0 0 0;height:70px;
+  background:linear-gradient(180deg,rgba(242,241,239,0),var(--paper))}
+.home.landing .panel{flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:26px var(--pad) max(env(safe-area-inset-bottom),28px);
+  max-width:560px;margin-inline:auto;width:100%}
+.home.landing .wm{width:158px;height:auto;display:block;margin-bottom:22px}
+.home.landing h1{font-size:34px;line-height:1.1;letter-spacing:-.02em;color:var(--ink);
+  margin:0 0 12px;font-weight:700}
+.home.landing .intro{font-size:15.5px;line-height:1.55;color:var(--steel);margin:0 0 22px;
+  max-width:44ch}
+.home.landing .points{display:flex;flex-direction:column;gap:11px;margin:0 0 28px;list-style:none;padding:0}
+.home.landing .points li{display:flex;align-items:center;gap:11px;font-size:14.5px;color:var(--slate)}
+.home.landing .points svg{width:17px;height:17px;flex:0 0 auto;color:var(--primary)}
+.home.landing .count{display:block;text-align:center;margin-top:16px;font-size:14.5px;
+  color:var(--primary);text-decoration:none;font-weight:500;min-height:44px;
+  line-height:44px}
+.home.landing .signin{display:block;text-align:center;margin-top:24px;padding-top:20px;
+  border-top:1px solid var(--line);font-size:14.5px;color:var(--muted);
+  text-decoration:none;min-height:44px}
+@media (min-width:900px){
+  .home.landing{flex-direction:row-reverse}
+  .home.landing .shot{height:100dvh;width:46%;min-height:0}
+  .home.landing .shot:after{inset:0 auto 0 0;width:70px;height:auto;
+    background:linear-gradient(90deg,var(--paper),rgba(242,241,239,0))}
+  .home.landing .panel{width:54%;max-width:none;padding:0;align-items:center}
+  .home.landing .panel .inner{width:100%;max-width:440px;padding:40px}
+  .home.landing h1{font-size:40px}
+}
+@media (max-height:700px){
+  .home.landing .shot{height:26dvh;min-height:160px}
+  .home.landing .panel{padding-top:18px}
+  .home.landing .points{gap:9px;margin-bottom:22px}
+}
+.home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
+.home.door{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;min-height:100dvh;padding-block:var(--pad) 15vh;
   background:radial-gradient(ellipse 90% 65% at 50% 30%, rgba(10,90,104,0.045), transparent 72%)}
-.home-logo{width:170px;height:auto;margin:0 0 28px;image-rendering:-webkit-optimize-contrast}
-.home-head{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin:0 0 2px}
-@media (min-width:768px){ .home-head{font-size:25px} }
-.home-lead{font-size:14px;font-weight:400;color:var(--muted);margin:0 0 36px;max-width:380px;line-height:1.5}
 .home-actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px}
 .home-primary{font-size:18px;font-weight:700;min-height:56px}
 .home-count{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--primary);text-decoration:none;min-height:52px}
 .home-signin{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--steel);text-decoration:none;min-height:52px}
-.home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
+.home-lead{font-size:14px;font-weight:400;color:var(--muted);margin:0 0 36px;max-width:380px;line-height:1.5}
 
 /* ---------- confirmation screen ---------- */
 .confirm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -2385,15 +2418,21 @@ function currentRoute(){
 function renderHome(){
   const count = (S.records || []).length;
   app.innerHTML = `
-  <div class="home door">
-    <img class="home-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
-    <h1 class="home-head">Site surveys</h1>
-    <p class="home-lead">That work on site, with or without signal.</p>
-    <div class="home-actions">
-      <a class="btn home-primary" href="#/surveys">Start a survey</a>
-      ${count ? `<a class="home-count" href="#/surveys">${count} survey${count===1?'':'s'} on this device</a>` : ''}
-      <a class="home-signin" href="#/admin">Sign in</a>
-    </div>
+  <div class="home landing">
+    <div class="shot"><img src="/glass-hero.jpg" alt="" loading="eager" width="1024" height="1536"></div>
+    <div class="panel"><div class="inner">
+      <img class="wm" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141">
+      <h1>Site surveys</h1>
+      <p class="intro">Every GG site survey on your phone. Glass, sizes, access, health and safety and sign off, in seven steps.</p>
+      <ul class="points">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>Works with no signal</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>Saves as you type, no save button</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>Makes the PDF on the spot</li>
+      </ul>
+      <a class="btn" href="#/surveys">Start a survey</a>
+      ${count ? `<a class="count" href="#/surveys">${count} survey${count===1?'':'s'} on this device</a>` : ''}
+      <a class="signin" href="#/admin">Sign in</a>
+    </div></div>
   </div>`;
 }
 let adminChecking = true;
