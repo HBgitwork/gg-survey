@@ -1091,6 +1091,26 @@ function updateSyncIndicator(){
     el.style.display = n > 0 ? '' : 'none';
   });
 }
+function buildSurveyRow(rec, uid){
+  const a = rec.answers || {};
+  const status = rec.status === 'SUBMITTED' ? 'SUBMITTED' : 'DRAFT';
+  const surveyDate = a.surveyDate ? String(a.surveyDate) : (rec.surveyDate ? String(rec.surveyDate) : '');
+  const submittedAt = rec.submittedAt || null;
+  return {
+    id: rec.id,
+    engineer_id: uid,
+    job_ref: String(a.jobRef != null ? a.jobRef : (rec.jobRef || '')),
+    site_name: String(a.siteName != null ? a.siteName : (rec.siteName || '')),
+    surveyed_by: String(a.surveyedBy != null ? a.surveyedBy : (rec.surveyedBy || '')),
+    survey_date: surveyDate || null,
+    status: status,
+    is_sample: !!rec.sample,
+    answers: a,
+    device_updated_at: rec.updatedAt || new Date().toISOString(),
+    submitted_at: submittedAt || null
+  };
+}
+
 async function syncPending(){
   if (syncRunning) return;
   syncRunning = true;
@@ -1102,20 +1122,9 @@ async function syncPending(){
     const recs = await Store.all();
     const pending = recs.filter(r => needsSync(r));
     for (const rec of pending){
-      const row = {
-        id: rec.id,
-        engineer_id: uid,
-        job_ref: String(rec.jobRef || ''),
-        site_name: String(rec.siteName || ''),
-        surveyed_by: String(rec.surveyedBy || ''),
-        survey_date: String(rec.surveyDate || ''),
-        status: String(rec.status || ''),
-        sample: !!rec.sample,
-        answers: rec.answers || {},
-        device_updated_at: rec.updatedAt || null
-      };
+      const row = buildSurveyRow(rec, uid);
       const { error } = await sbClient.from('surveys').upsert(row);
-      if (error) continue;
+      if (error){ console.error('Survey sync failed', { code: error.code, message: error.message, details: error.details, hint: error.hint, error }); continue; }
       rec.syncedAt = new Date().toISOString();
       try { await Store.put(rec); } catch(e) {}
       await syncPhotos(rec, uid);
@@ -1229,20 +1238,9 @@ async function syncOne(rec){
     const { data: sessionData } = await sbClient.auth.getSession();
     if (!sessionData || !sessionData.session) return false;
     const uid = sessionData.session.user.id;
-    const row = {
-      id: rec.id,
-      engineer_id: uid,
-      job_ref: String(rec.jobRef || ''),
-      site_name: String(rec.siteName || ''),
-      surveyed_by: String(rec.surveyedBy || ''),
-      survey_date: String(rec.surveyDate || ''),
-      status: String(rec.status || ''),
-      sample: !!rec.sample,
-      answers: rec.answers || {},
-      device_updated_at: rec.updatedAt || null
-    };
+    const row = buildSurveyRow(rec, uid);
     const { error } = await sbClient.from('surveys').upsert(row);
-    if (error) return false;
+    if (error){ console.error('Survey sync failed', { code: error.code, message: error.message, details: error.details, hint: error.hint, error }); return false; }
     rec.syncedAt = new Date().toISOString();
     try { await Store.put(rec); } catch(e) {}
     const total = countPhotos(rec);
