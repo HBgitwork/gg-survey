@@ -852,7 +852,7 @@ body.modal-open{ overflow:hidden }
 .adm-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media (max-width:599px){ .adm-photo-grid{grid-template-columns:repeat(2,1fr)} }
 .adm-photo{cursor:pointer;overflow:hidden;border-radius:8px;border:1px solid var(--line);background:var(--card)}
-.adm-photo img{width:100%;height:auto;display:block;aspect-ratio:4/3;object-fit:cover;transition:opacity 150ms ease}
+.adm-photo img{width:100%;height:auto;display:block;aspect-ratio:4/3;object-fit:cover;object-position:center;transition:opacity 150ms ease}
 .adm-photo img.loading{opacity:0}
 .adm-photo .cap{padding:8px 10px;font-size:12.5px;color:var(--steel);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
@@ -862,9 +862,12 @@ body.modal-open{ overflow:hidden }
 .adm-loading p{font-size:14px;color:var(--muted);margin:0}
 
 /* photo lightbox dialog */
-.adm-lightbox img{max-width:90vw;max-height:85dvh;border-radius:8px;display:block;margin:0 auto}
-.adm-lightbox{background:rgba(14,20,23,.92);border:none;padding:0;max-width:none;max-height:none;width:100vw;height:100dvh;color:#fff}
-.adm-lightbox::backdrop{background:rgba(14,20,23,.92)}
+.photodlg{width:auto;max-width:calc(100vw - 32px);height:auto;max-height:calc(100dvh - 32px);margin:auto;padding:0;border:0;background:var(--ink);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.photodlg::backdrop{background:rgba(14,20,23,.86)}
+.photodlg img{display:block;max-width:calc(100vw - 32px);max-height:calc(100dvh - 120px);width:auto;height:auto;object-fit:contain;image-orientation:from-image;background:#000}
+.photodlg .photocap{flex:0 0 auto;padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));font-size:13.5px;color:#a8b4b8;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.photodlg .photoclose{position:absolute;top:max(8px,env(safe-area-inset-top));right:8px;width:40px;height:40px;border:0;border-radius:50%;background:rgba(14,20,23,.55);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
+.photodlg .photoclose:hover{background:rgba(14,20,23,.75)}
 
 /* admin filter pills + sort */
 .adm-filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0}
@@ -2723,7 +2726,7 @@ app.addEventListener('click', async (e) => {
     case 'adminView': e.stopPropagation(); { const id = t.dataset.id; adminView = 'detail'; adminDetailLoading = true; adminDetailError = null; adminPdfError = null; renderAdmin(); adminLoadDetail(id); break; }
     case 'adminBack': e.stopPropagation(); adminView = 'list'; adminDetailRow = null; adminDetailPhotos = []; adminPdfError = null; renderAdmin(); break;
     case 'adminPdf': e.stopPropagation(); { const id = t.dataset.id; adminDownloadPdf(id); break; }
-    case 'adminPhoto': e.stopPropagation(); { adminOpenPhoto(t.dataset.url); break; }
+    case 'adminPhoto': e.stopPropagation(); { adminOpenPhoto(t.dataset.url, t.dataset.cap); break; }
     case 'adminSort': e.stopPropagation(); {
       const col = t.dataset.col;
       if (adminSortCol === col) adminSortDir = adminSortDir === 'asc' ? 'desc' : 'asc';
@@ -3480,8 +3483,8 @@ function adminRenderDetail(){
       const items = adminDetailPhotos.map(p => {
         const url = p.url || '';
         const cap = p.caption || (FIELD_INDEX[p.field_id] ? FIELD_INDEX[p.field_id].label : 'Photo');
-        return `<div class="adm-photo" data-act="adminPhoto" data-url="${esc(url)}">
-          <img class="loading" src="${esc(url)}" alt="${esc(cap)}" data-act="adminPhoto" data-url="${esc(url)}" onload="this.classList.remove('loading')" onerror="this.classList.remove('loading');this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22%3E%3Crect width=%22200%22 height=%22150%22 fill=%22%23F5F7F6%22 stroke=%22%23D3DBDC%22/%3E%3Ctext x=%22100%22 y=%2275%22 text-anchor=%22middle%22 font-size=%2210%22 fill=%22%236B7C85%22%3ENot loaded%3C/text%3E%3C/svg%3E'">
+        return `<div class="adm-photo" data-act="adminPhoto" data-url="${esc(url)}" data-cap="${esc(cap)}">
+          <img class="loading" src="${esc(url)}" alt="${esc(cap)}" data-act="adminPhoto" data-url="${esc(url)}" data-cap="${esc(cap)}" onload="this.classList.remove('loading')" onerror="this.classList.remove('loading');this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22%3E%3Crect width=%22200%22 height=%22150%22 fill=%22%23F5F7F6%22 stroke=%22%23D3DBDC%22/%3E%3Ctext x=%22100%22 y=%2275%22 text-anchor=%22middle%22 font-size=%2210%22 fill=%22%236B7C85%22%3ENot loaded%3C/text%3E%3C/svg%3E'">
           <div class="cap">${esc(cap)}</div>
         </div>`;
       }).join('');
@@ -3518,13 +3521,18 @@ function adminRenderDetail(){
   </div>`;
 }
 
-function adminOpenPhoto(url){
+function adminOpenPhoto(url, caption){
   if (!url) return;
-  confirmDlg.innerHTML = `<div class="adm-lightbox" style="display:flex;align-items:center;justify-content:center;width:100vw;height:100dvh;cursor:pointer">
-    <img src="${esc(url)}" alt="Photograph">
+  confirmDlg.innerHTML = `<div class="photodlg">
+    <button class="photoclose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <img src="${esc(url)}" alt="${esc(caption || 'Photograph')}">
+    ${caption ? `<div class="photocap">${esc(caption)}</div>` : ''}
   </div>`;
   openDialog(confirmDlg);
-  confirmDlg.addEventListener('click', () => confirmDlg.close('no'), { once:true });
+  confirmDlg.addEventListener('click', (e) => {
+    if (e.target.closest('.photoclose')) { confirmDlg.close('no'); return; }
+    if (e.target === confirmDlg) confirmDlg.close('no');
+  }, { once:false });
 }
 
 async function isAnonymous(session){
