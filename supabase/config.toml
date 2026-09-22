@@ -1,0 +1,2 @@
+[functions.backfill-photos]
+verify_jwt = false

@@ -738,6 +738,123 @@ body.modal-open{ overflow:hidden }
 .boot-fatal-help strong{font-weight:700}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- admin dashboard ---------- */
+.adm{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
+.adm-top{flex:0 0 auto;background:var(--card);border-bottom:1px solid var(--line)}
+.adm-top-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
+.adm-mark{width:32px;height:32px;flex:0 0 auto}
+.adm-top h1{font-size:18px;font-weight:600;margin:0;color:var(--ink);flex:1 1 auto;min-width:0}
+.adm-user{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.adm-user .email{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.adm-signout{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 14px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--steel);font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 120ms ease,border-color 120ms ease}
+.adm-signout:hover{background:var(--paper);border-color:var(--steel)}
+@media (max-width:819px){ .adm-user .email{display:none} }
+
+.adm-controls{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:12px var(--pad);max-width:1180px;margin:0 auto;width:100%}
+.adm-search{position:relative;flex:1 1 auto;max-width:420px}
+.adm-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted);pointer-events:none}
+.adm-search input{width:100%;min-height:40px;padding:0 12px 0 38px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:14.5px;font-family:inherit}
+.adm-search input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
+.adm-count{font-size:13.5px;color:var(--muted);white-space:nowrap;flex:0 0 auto;margin-left:auto}
+.adm-count b{color:var(--ink);font-weight:700}
+
+.adm-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.adm-scroll-inner{max-width:1180px;margin:0 auto;padding:0 var(--pad) 28px}
+
+.adm-table{width:100%;border-collapse:collapse;font-size:14px}
+.adm-table thead th{text-align:left;font-size:12px;font-weight:600;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.adm-table thead th.center{text-align:center}
+.adm-table tbody tr{cursor:pointer;transition:background 100ms ease}
+.adm-table tbody tr:hover{background:var(--primary-soft)}
+.adm-table tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.adm-table .col-ref{font-weight:600;color:var(--ink);white-space:nowrap}
+.adm-table .col-site{color:var(--slate);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-table .col-by{color:var(--steel);white-space:nowrap}
+.adm-table .col-date{color:var(--steel);white-space:nowrap;font-variant-numeric:tabular-nums}
+.adm-table .col-photos{text-align:center;color:var(--steel);font-variant-numeric:tabular-nums}
+.adm-table .col-act{text-align:right;white-space:nowrap}
+.adm-pill{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10.5px;font-weight:700;letter-spacing:.04em;background:var(--amber-soft);color:var(--amber);vertical-align:middle;margin-left:8px}
+.adm-actions{display:inline-flex;gap:6px}
+.adm-act{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background 120ms ease,color 120ms ease}
+.adm-act:hover{background:var(--primary-soft);color:var(--primary)}
+.adm-act svg{width:18px;height:18px}
+
+.adm-cards{display:none}
+.adm-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:box-shadow 120ms ease,border-color 120ms ease}
+.adm-card:hover{box-shadow:0 2px 8px -2px rgba(14,20,23,0.08);border-color:var(--line-strong)}
+.adm-card-body{flex:1 1 auto;min-width:0}
+.adm-card-l1{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.adm-card-l1 .ref{font-weight:600;color:var(--ink);font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-card-l2{font-size:14px;color:var(--slate);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.adm-card-l3{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-card-act{flex:0 0 76px;display:flex;justify-content:flex-end;gap:6px}
+
+@media (max-width:819px){
+  .adm-table{display:none}
+  .adm-cards{display:block}
+}
+
+.adm-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px var(--pad)}
+.adm-empty svg{width:48px;height:48px;color:var(--line-strong);margin-bottom:16px}
+.adm-empty h2{font-size:18px;font-weight:600;color:var(--slate);margin:0 0 4px}
+.adm-empty p{font-size:14px;color:var(--muted);margin:0;line-height:1.5}
+.adm-error{padding:24px var(--pad);max-width:1180px;margin:0 auto}
+.adm-error .box{background:var(--danger-soft);border:1px solid var(--danger);border-radius:10px;padding:16px 18px;color:var(--danger);font-size:14.5px;line-height:1.5}
+
+/* admin detail */
+.adm-detail{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
+.adm-detail-top{flex:0 0 auto;background:var(--card);border-bottom:1px solid var(--line)}
+.adm-detail-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
+.adm-back{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--steel);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 120ms ease,border-color 120ms ease;flex:0 0 auto}
+.adm-back:hover{background:var(--paper);border-color:var(--steel)}
+.adm-back svg{width:16px;height:16px;margin-right:6px}
+.adm-detail-title{flex:1 1 auto;min-width:0}
+.adm-detail-title .ref{font-size:16px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-detail-title .site{font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-dl{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:0 0 auto;transition:opacity 150ms ease}
+.adm-dl:hover{opacity:.92}
+.adm-dl:disabled{opacity:.5;cursor:default}
+.adm-dl svg{width:16px;height:16px}
+
+.adm-detail-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.adm-detail-inner2{max-width:880px;margin:0 auto;padding:24px var(--pad) 48px}
+.adm-sec{margin-bottom:28px}
+.adm-sec h2{font-size:17px;font-weight:700;color:var(--ink);margin:0 0 4px;letter-spacing:-.01em}
+.adm-sec .sub{font-size:13.5px;color:var(--muted);margin:0 0 14px}
+.adm-fields{display:flex;flex-wrap:wrap;gap:12px 24px}
+.adm-field{min-width:0}
+.adm-field.full{width:100%}
+.adm-field:not(.full){flex:1 1 calc(50% - 12px)}
+.adm-field .lbl{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px;letter-spacing:.02em}
+.adm-field .val{font-size:14.5px;color:var(--ink);line-height:1.45;word-break:break-word}
+.adm-field .val.muted{color:var(--muted);font-style:italic}
+.adm-pt{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:4px}
+.adm-pt th,.adm-pt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.adm-pt th{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.adm-pt td{color:var(--slate)}
+@media (max-width:599px){
+  .adm-field:not(.full){flex:1 1 100%}
+}
+
+.adm-photos{margin-top:8px}
+.adm-photos h2{font-size:17px;font-weight:700;color:var(--ink);margin:0 0 14px}
+.adm-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:599px){ .adm-photo-grid{grid-template-columns:repeat(2,1fr)} }
+.adm-photo{cursor:pointer;overflow:hidden;border-radius:8px;border:1px solid var(--line);background:var(--card)}
+.adm-photo img{width:100%;height:auto;display:block;aspect-ratio:4/3;object-fit:cover;transition:opacity 150ms ease}
+.adm-photo img.loading{opacity:0}
+.adm-photo .cap{padding:8px 10px;font-size:12.5px;color:var(--steel);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.adm-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px var(--pad);text-align:center}
+.adm-loading .spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:adm-spin .8s linear infinite;margin-bottom:14px}
+@keyframes adm-spin{to{transform:rotate(360deg)}}
+.adm-loading p{font-size:14px;color:var(--muted);margin:0}
+
+/* photo lightbox dialog */
+.adm-lightbox img{max-width:90vw;max-height:85dvh;border-radius:8px;display:block;margin:0 auto}
+.adm-lightbox{background:rgba(14,20,23,.92);border:none;padding:0;max-width:none;max-height:none;width:100vw;height:100dvh;color:#fff}
+.adm-lightbox::backdrop{background:rgba(14,20,23,.92)}
 </style>
 </head>
 <body>
@@ -1130,7 +1247,7 @@ async function syncPending(){
       await syncPhotos(rec, uid);
     }
     updateSyncIndicator();
-  } catch(e) {}
+  } catch(e){ console.error('syncPending failed', { code: e && e.code, message: e && e.message, error: e }); }
   finally { syncRunning = false; }
 }
 
@@ -1174,14 +1291,22 @@ async function syncPhotos(rec, uid, onProgress){
         const blob = dataURLtoBlob(photo.uri);
         const { error: upErr } = await sbClient.storage
           .from('survey-photos').upload(path, blob, { contentType: 'image/jpeg', upsert: true });
-        if (!upErr){
+        if (upErr){
+          console.error('Photo storage upload failed', { surveyId: rec.id, photoId: photo.id, path, code: upErr.code, message: upErr.message, details: upErr.details, hint: upErr.hint, error: upErr });
+        } else {
           const { error: dbErr } = await sbClient.from('survey_photos').upsert({
-            survey_id: rec.id, engineer_id: uid, field_id: fid,
-            photo_id: photo.id, storage_path: path, caption: photo.caption || ''
+            id: photo.id, survey_id: rec.id, engineer_id: uid, field_id: fid,
+            storage_path: path, caption: photo.caption || ''
           });
-          if (!dbErr) ok = true;
+          if (dbErr){
+            console.error('Photo row insert failed', { surveyId: rec.id, photoId: photo.id, path, code: dbErr.code, message: dbErr.message, details: dbErr.details, hint: dbErr.hint, error: dbErr });
+          } else {
+            ok = true;
+          }
         }
-      } catch(e) {}
+      } catch(e){
+        console.error('Photo upload threw', { surveyId: rec.id, photoId: photo.id, path, code: e && e.code, message: e && e.message, error: e });
+      }
       if (ok){ photo.uploadedAt = new Date().toISOString(); changed = true; }
       if (onProgress) onProgress();
     }
@@ -2304,14 +2429,16 @@ async function resolvePhotoSrc(src){
   } catch(e){ return ''; }
 }
 
-async function buildReport(a){
+async function buildReport(a, opts){
+  opts = opts || {};
+  const extPhotos = opts.photos || null;
   const secs = [], photoEntries = [];
   SECTIONS.forEach(sec => {
     const fields = [];
     visibleFields(sec, a).forEach(f => {
       const v = a[f.id];
       if (f.type === 'photos'){
-        arr(v).forEach(p => photoEntries.push({ label:f.label, photo:p }));
+        if (!extPhotos) arr(v).forEach(p => photoEntries.push({ label:f.label, photo:p }));
         return;
       }
       if (f.type === 'signature') return;
@@ -2349,17 +2476,22 @@ async function buildReport(a){
     }
   });
 
-  const resolvedPhotos = await Promise.all(photoEntries.map(async ({ label, photo }) => {
-    const src = await resolvePhotoSrc(photo.uri);
-    const caption = photo.caption || label;
-    return { src, caption };
-  }));
+  let resolvedPhotos;
+  if (extPhotos){
+    resolvedPhotos = extPhotos.map(p => ({ src:p.url || '', caption:p.caption || '' }));
+  } else {
+    resolvedPhotos = await Promise.all(photoEntries.map(async ({ label, photo }) => {
+      const src = await resolvePhotoSrc(photo.uri);
+      const caption = photo.caption || label;
+      return { src, caption };
+    }));
+  }
 
   const photoBlocks = resolvedPhotos.map(p =>
     `<figure><img data-rp="1" src="${esc(p.src)}" alt="${esc(p.caption)}"><figcaption>${esc(p.caption)}</figcaption></figure>`);
 
   const surveyor = a.surveyedBy === 'Other (type name)' ? a.surveyedByOther : a.surveyedBy;
-  const sample = !!(S.record && S.record.sample);
+  const sample = opts.sample != null ? !!opts.sample : !!(S.record && S.record.sample);
   const jobRef = a.jobRef || '';
 
   document.getElementById('report').innerHTML = `
@@ -2399,8 +2531,8 @@ function waitForReportImages(){
   })));
 }
 
-async function makePdf(a){
-  await buildReport(a);
+async function makePdf(a, opts){
+  await buildReport(a, opts);
   document.getElementById('report').setAttribute('data-jobref', a.jobRef || '');
   document.title = 'GG Survey ' + (a.jobRef || '') + ' ' + (a.siteName || '');
   await waitForReportImages();
@@ -2546,6 +2678,10 @@ app.addEventListener('click', async (e) => {
     case 'filter': S.filter = v; S.selectedIds.clear(); S.selectMode = false; render(); break;
     case 'adminSignOut': await adminSignOut(); break;
     case 'adminSignIn': await adminSignIn(); break;
+    case 'adminView': e.stopPropagation(); { const id = t.dataset.id; adminView = 'detail'; adminDetailLoading = true; adminDetailError = null; adminPdfError = null; renderAdmin(); adminLoadDetail(id); break; }
+    case 'adminBack': e.stopPropagation(); adminView = 'list'; adminDetailRow = null; adminDetailPhotos = []; adminPdfError = null; renderAdmin(); break;
+    case 'adminPdf': e.stopPropagation(); { const id = t.dataset.id; adminDownloadPdf(id); break; }
+    case 'adminPhoto': e.stopPropagation(); { adminOpenPhoto(t.dataset.url); break; }
     case 'del': await deleteSurvey(t.dataset.id); break;
     case 'startSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = true; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
     case 'cancelSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = false; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
@@ -2826,6 +2962,10 @@ async function adminSignOut(){
   try { await sbClient.auth.signOut(); } catch(e){}
   adminEmail = null;
   adminErr = '';
+  adminView = 'list'; adminSurveys = []; adminSearchQuery = '';
+  adminLoadingList = false; adminListError = null;
+  adminDetailRow = null; adminDetailPhotos = []; adminDetailLoading = false; adminDetailError = null;
+  adminPdfBusy = false; adminPdfError = null;
   try { await sbClient.auth.signInAnonymously(); } catch(e){}
   navigate('/');
 }
@@ -2835,7 +2975,7 @@ function handleRouteChange(){
   if (S.record) persist();
   const r = currentRoute();
   if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; S.selectMode = false; S.selectedIds.clear(); loadList(); }
-  else if (r === 'admin'){ adminErr = ''; adminChecking = true; renderAdmin(); }
+  else if (r === 'admin'){ adminErr = ''; adminChecking = true; adminView = 'list'; adminDetailRow = null; adminDetailPhotos = []; adminPdfError = null; renderAdmin(); }
   else if (r === 'submitted' && S.record){ render(); }
   else render();
 }
@@ -2897,6 +3037,328 @@ function renderHome(){
 let adminChecking = true;
 let adminEmail = null;
 let adminErr = '';
+
+let adminView = 'list';
+let adminSurveys = [];
+let adminSearchQuery = '';
+let adminLoadingList = false;
+let adminListError = null;
+let adminDetailRow = null;
+let adminDetailPhotos = [];
+let adminDetailLoading = false;
+let adminDetailError = null;
+let adminPdfBusy = false;
+let adminPdfError = null;
+
+const SAMPLE_SURVEYS = [
+  { id:'sample-1', job_ref:'GG-24817', site_name:'Stockport Branch', surveyed_by:'Arron Slinger', survey_date:'2026-09-16', submitted_at:'2026-09-16T14:32:00Z', is_sample:true, photo_count:4 },
+  { id:'sample-2', job_ref:'GG-24818', site_name:'Rochdale Depot', surveyed_by:'Ben Bowery', survey_date:'2026-09-15', submitted_at:'2026-09-15T09:15:00Z', is_sample:true, photo_count:2 },
+  { id:'sample-3', job_ref:'GG-24819', site_name:'Altrincham Retail Park', surveyed_by:'Chris Channer', survey_date:'2026-09-14', submitted_at:'2026-09-14T16:05:00Z', is_sample:true, photo_count:6 },
+];
+
+function adminFmtDate(iso){
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ', ' + h + ':' + m;
+}
+
+async function adminLoadList(){
+  if (!sbClient) { adminListError = 'Cannot reach the server. Check your connection and try again.'; adminLoadingList = false; renderAdmin(); return; }
+  adminLoadingList = true; adminListError = null;
+  renderAdmin();
+  try {
+    let query = sbClient.from('survey_list').select('*').eq('status','SUBMITTED').order('submitted_at',{ ascending:false });
+    const q = adminSearchQuery.trim();
+    if (q){
+      const like = '%' + q.replace(/%/g,'\\%').replace(/_/g,'\\_') + '%';
+      query = query.or(`job_ref.ilike.${like},site_name.ilike.${like},surveyed_by.ilike.${like}`);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    adminSurveys = data || [];
+  } catch(e){
+    adminListError = (e && e.message) || 'Could not load surveys. Try again.';
+    adminSurveys = [];
+  }
+  adminLoadingList = false;
+  renderAdmin();
+}
+
+async function adminLoadDetail(id){
+  if (!sbClient) { adminDetailError = 'Cannot reach the server.'; adminDetailLoading = false; renderAdmin(); return; }
+  adminDetailLoading = true; adminDetailError = null; adminDetailRow = null; adminDetailPhotos = [];
+  renderAdmin();
+  try {
+    const { data: row, error: e1 } = await sbClient.from('surveys').select('*').eq('id', id).single();
+    if (e1) throw e1;
+    adminDetailRow = row;
+    const { data: photos, error: e2 } = await sbClient.from('survey_photos').select('*').eq('survey_id', id).order('created_at',{ ascending:true });
+    if (e2) throw e2;
+    const photoRows = photos || [];
+    const resolved = await Promise.all(photoRows.map(async (p) => {
+      let url = '';
+      try {
+        const { data, error } = await sbClient.storage.from('survey-photos').createSignedUrl(p.storage_path, 3600);
+        if (!error && data && data.signedUrl) url = data.signedUrl;
+      } catch(e){}
+      return { id: p.id, caption: p.caption || '', field_id: p.field_id || '', url };
+    }));
+    adminDetailPhotos = resolved;
+  } catch(e){
+    adminDetailError = (e && e.message) || 'Could not load this survey.';
+  }
+  adminDetailLoading = false;
+  renderAdmin();
+}
+
+async function adminDownloadPdf(surveyId){
+  if (adminPdfBusy) return;
+  adminPdfBusy = true; adminPdfError = null;
+  renderAdmin();
+  try {
+    const { data: row, error: e1 } = await sbClient.from('surveys').select('*').eq('id', surveyId).single();
+    if (e1) throw e1;
+    const { data: photos, error: e2 } = await sbClient.from('survey_photos').select('*').eq('survey_id', surveyId).order('created_at',{ ascending:true });
+    if (e2) throw e2;
+    const photoRows = photos || [];
+    const signedUrls = await Promise.all(photoRows.map(async (p) => {
+      try {
+        const { data, error } = await sbClient.storage.from('survey-photos').createSignedUrl(p.storage_path, 3600);
+        if (!error && data && data.signedUrl) return { url: data.signedUrl, caption: p.caption || '', field_id: p.field_id || '' };
+      } catch(e){}
+      return { url: '', caption: p.caption || '', field_id: p.field_id || '' };
+    }));
+    const answers = row.answers || {};
+    const opts = { sample: !!row.is_sample, photos: signedUrls };
+    await buildReport(answers, opts);
+    document.getElementById('report').setAttribute('data-jobref', answers.jobRef || '');
+    document.title = 'GG Survey ' + (answers.jobRef || '') + ' ' + (answers.siteName || '');
+    await waitForReportImages();
+    setTimeout(() => { window.print(); setTimeout(() => { document.title = 'GG Survey'; }, 400); }, 60);
+  } catch(e){
+    adminPdfError = (e && e.message) || 'Could not build the PDF.';
+  }
+  adminPdfBusy = false;
+  renderAdmin();
+}
+
+const EYE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+const DL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg>';
+const BACK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+const EMPTY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v6"/></svg>';
+
+function adminRenderList(){
+  const real = adminSurveys;
+  const hasReal = real.length > 0;
+  const samples = SAMPLE_SURVEYS.map(s => ({ ...s, _sample: true }));
+  const all = hasReal ? real : samples;
+  const count = hasReal ? real.length : 0;
+
+  let body;
+  if (adminListError){
+    body = `<div class="adm-error"><div class="box">${esc(adminListError)}</div></div>`;
+  } else if (adminLoadingList){
+    body = `<div class="adm-loading"><div class="spin"></div><p>Loading surveys…</p></div>`;
+  } else if (all.length === 0){
+    body = `<div class="adm-empty">${EMPTY_SVG}<h2>No surveys submitted yet.</h2><p>Submitted surveys will appear here.</p></div>`;
+  } else {
+    const rows = all.map(s => {
+      const ref = esc(s.job_ref || '');
+      const pill = s.is_sample || s._sample ? '<span class="adm-pill">SAMPLE</span>' : '';
+      const site = esc(s.site_name || '');
+      const by = esc(s.surveyed_by || '');
+      const date = adminFmtDate(s.submitted_at);
+      const photos = s.photo_count != null ? s.photo_count : 0;
+      const sid = esc(s.id);
+      return `<tr data-act="adminView" data-id="${sid}">
+        <td class="col-ref">${ref}${pill}</td>
+        <td class="col-site">${site}</td>
+        <td class="col-by">${by}</td>
+        <td class="col-date">${esc(date)}</td>
+        <td class="col-photos">${photos}</td>
+        <td class="col-act">
+          <div class="adm-actions">
+            <button class="adm-act" data-act="adminView" data-id="${sid}" title="View" aria-label="View">${EYE_SVG}</button>
+            <button class="adm-act" data-act="adminPdf" data-id="${sid}" title="Download PDF" aria-label="Download PDF">${DL_SVG}</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    const cards = all.map(s => {
+      const ref = esc(s.job_ref || '');
+      const pill = s.is_sample || s._sample ? '<span class="adm-pill">SAMPLE</span>' : '';
+      const site = esc(s.site_name || '');
+      const by = esc(s.surveyed_by || '');
+      const date = adminFmtDate(s.submitted_at);
+      const photos = s.photo_count != null ? s.photo_count : 0;
+      const sid = esc(s.id);
+      return `<div class="adm-card" data-act="adminView" data-id="${sid}">
+        <div class="adm-card-body">
+          <div class="adm-card-l1"><span class="ref">${ref}</span>${pill}</div>
+          <div class="adm-card-l2">${site}</div>
+          <div class="adm-card-l3">${by} · ${esc(date)} · ${photos} photo${photos===1?'':'s'}</div>
+        </div>
+        <div class="adm-card-act">
+          <button class="adm-act" data-act="adminView" data-id="${sid}" title="View" aria-label="View">${EYE_SVG}</button>
+          <button class="adm-act" data-act="adminPdf" data-id="${sid}" title="Download PDF" aria-label="Download PDF">${DL_SVG}</button>
+        </div>
+      </div>`;
+    }).join('');
+    body = `
+      <table class="adm-table"><thead><tr>
+        <th>Job reference</th><th>Site</th><th>Surveyed by</th><th>Submitted</th><th class="center">Photos</th><th></th>
+      </tr></thead><tbody>${rows}</tbody></table>
+      <div class="adm-cards">${cards}</div>`;
+  }
+
+  const countLabel = hasReal ? `${count} survey${count===1?'':'s'}` : (adminLoadingList ? '…' : '0 surveys');
+  const searchVal = esc(adminSearchQuery);
+
+  app.innerHTML = `
+  <div class="adm">
+    <div class="adm-top">
+      <div class="adm-top-inner">
+        <img class="adm-mark" src="${LOGO_MARK}" alt="" draggable="false">
+        <h1>Submitted surveys</h1>
+        <div class="adm-user">
+          <span class="email">${esc(adminEmail || '')}</span>
+          <button class="adm-signout" data-act="adminSignOut">Sign out</button>
+        </div>
+      </div>
+    </div>
+    <div class="adm-controls">
+      <div class="adm-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="admSearch" placeholder="Search job reference, site or surveyor" value="${searchVal}" autocomplete="off">
+      </div>
+      <div class="adm-count"><b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}</div>
+    </div>
+    <div class="adm-scroll" id="admScroll">
+      <div class="adm-scroll-inner">
+        ${body}
+      </div>
+    </div>
+  </div>`;
+
+  const si = document.getElementById('admSearch');
+  if (si){
+    let timer = null;
+    si.addEventListener('input', (e) => {
+      clearTimeout(timer);
+      const v = e.target.value;
+      timer = setTimeout(() => { adminSearchQuery = v; adminLoadList(); }, 250);
+    });
+  }
+}
+
+function adminRenderDetail(){
+  const a = (adminDetailRow && adminDetailRow.answers) || {};
+  const jobRef = a.jobRef || '';
+  const siteName = a.siteName || '';
+
+  let body;
+  if (adminDetailError){
+    body = `<div class="adm-error"><div class="box">${esc(adminDetailError)}</div></div>`;
+  } else if (adminDetailLoading || !adminDetailRow){
+    body = `<div class="adm-loading"><div class="spin"></div><p>Loading survey…</p></div>`;
+  } else {
+    const secsHtml = SECTIONS.map(sec => {
+      const fields = [];
+      visibleFields(sec, a).forEach(f => {
+        const v = a[f.id];
+        if (f.type === 'photos') return;
+        if (f.type === 'signature') return;
+        if (f.type === 'panels'){
+          if (v && v.length){
+            const rows = v.map((p,i) => `<tr><td>${i+1}</td><td>${esc(p.ref||'')}</td><td>${esc(p.width||'')}</td><td>${esc(p.height||'')}</td><td>${esc(p.quantity||'')}</td><td>${esc(p.shape||'')}</td><td>${esc(p.notes||'')}</td></tr>`).join('');
+            fields.push({ full:true, label:f.label, html:`<table class="adm-pt"><thead><tr><th>#</th><th>Ref</th><th>W mm</th><th>H mm</th><th>Qty</th><th>Shape</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table>` });
+          }
+          return;
+        }
+        const shown = displayValue(f, v);
+        if (!shown) return;
+        const isLong = f.type === 'multiline' || String(shown).length > 60;
+        fields.push({ full:isLong, label:f.label, val:shown });
+      });
+
+      let extra = '';
+      if (sec.id === 'signoff'){
+        const sig = a.signature
+          ? `<div style="margin:8px 0"><img src="${esc(a.signature)}" alt="Signature" style="max-height:80px;border:1px solid var(--line);border-radius:6px"></div>`
+          : `<p class="val muted">No signature captured. ${esc(a.clientRepDeclinedReason || '')}</p>`;
+        extra = sig + `<p class="val" style="font-size:13.5px;color:var(--muted)">${esc(a.clientRepName || '')} · ${esc(ukDate(a.signedDate))} ${esc(a.signedTime || '')}</p>`;
+      }
+
+      if (!fields.length && !extra && sec.id !== 'signoff') return '';
+
+      const cells = fields.map(f => {
+        if (f.html) return `<div class="adm-field full"><div class="lbl">${esc(f.label)}</div>${f.html}</div>`;
+        return `<div class="adm-field${f.full?' full':''}"><div class="lbl">${esc(f.label)}</div><div class="val">${esc(f.val)}</div></div>`;
+      }).join('');
+
+      return `<div class="adm-sec">
+        <h2><span style="color:var(--primary);font-size:13px;font-weight:700">${sec.number}.</span> ${esc(sec.title)}</h2>
+        <p class="sub">${esc(sec.subtitle || '')}</p>
+        <div class="adm-fields">${cells}</div>
+        ${extra}
+      </div>`;
+    }).join('');
+
+    let photoHtml = '';
+    if (adminDetailPhotos.length){
+      const items = adminDetailPhotos.map(p => {
+        const url = p.url || '';
+        const cap = p.caption || (FIELD_INDEX[p.field_id] ? FIELD_INDEX[p.field_id].label : 'Photo');
+        return `<div class="adm-photo" data-act="adminPhoto" data-url="${esc(url)}">
+          <img class="loading" src="${esc(url)}" alt="${esc(cap)}" data-act="adminPhoto" data-url="${esc(url)}" onload="this.classList.remove('loading')" onerror="this.classList.remove('loading');this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22%3E%3Crect width=%22200%22 height=%22150%22 fill=%22%23F5F7F6%22 stroke=%22%23D3DBDC%22/%3E%3Ctext x=%22100%22 y=%2275%22 text-anchor=%22middle%22 font-size=%2210%22 fill=%22%236B7C85%22%3ENot loaded%3C/text%3E%3C/svg%3E'">
+          <div class="cap">${esc(cap)}</div>
+        </div>`;
+      }).join('');
+      photoHtml = `<div class="adm-photos"><h2>Photographs</h2><div class="adm-photo-grid">${items}</div></div>`;
+    }
+
+    body = secsHtml + photoHtml;
+  }
+
+  const dlDisabled = adminPdfBusy ? 'disabled' : '';
+  const dlLabel = adminPdfBusy ? 'Building…' : 'Download PDF';
+  const dlErr = adminPdfError ? `<div style="font-size:13px;color:var(--danger);margin-top:6px">${esc(adminPdfError)}</div>` : '';
+
+  app.innerHTML = `
+  <div class="adm-detail">
+    <div class="adm-detail-top">
+      <div class="adm-detail-inner">
+        <button class="adm-back" data-act="adminBack">${BACK_SVG}Back</button>
+        <div class="adm-detail-title">
+          <div class="ref">${esc(jobRef)}</div>
+          <div class="site">${esc(siteName)}</div>
+        </div>
+        <button class="adm-dl" data-act="adminPdf" data-id="${esc(adminDetailRow ? adminDetailRow.id : '')}" ${dlDisabled}>
+          ${DL_SVG}${dlLabel}
+        </button>
+      </div>
+    </div>
+    <div class="adm-detail-scroll">
+      <div class="adm-detail-inner2">
+        ${body}
+        ${dlErr}
+      </div>
+    </div>
+  </div>`;
+}
+
+function adminOpenPhoto(url){
+  if (!url) return;
+  confirmDlg.innerHTML = `<div class="adm-lightbox" style="display:flex;align-items:center;justify-content:center;width:100vw;height:100dvh;cursor:pointer">
+    <img src="${esc(url)}" alt="Photograph">
+  </div>`;
+  openDialog(confirmDlg);
+  confirmDlg.addEventListener('click', () => confirmDlg.close('no'), { once:true });
+}
 
 async function isAnonymous(session){
   if (!session || !session.user) return true;
@@ -2976,18 +3438,15 @@ async function renderAdmin(){
     return;
   }
 
-  app.innerHTML = `
-  <div class="home door">
-    <div class="admin-card">
-      <a class="brand-link" href="/" aria-label="Home"><img class="admin-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" width="344" height="141" draggable="false"></a>
-      <h1>Office</h1>
-      <p class="admin-signed">Signed in as <b>${esc(adminEmail)}</b></p>
-      <div class="home-actions">
-        <button class="btn danger" data-act="adminSignOut">Sign out</button>
-      </div>
-      <a class="admin-back" href="/">Back</a>
-    </div>
-  </div>`;
+  if (adminView === 'detail'){
+    adminRenderDetail();
+  } else {
+    if (!adminLoadingList && adminSurveys.length === 0 && !adminListError && !adminSearchQuery){
+      adminLoadList();
+    } else {
+      adminRenderList();
+    }
+  }
 }
 function render(){
   const r = currentRoute();
