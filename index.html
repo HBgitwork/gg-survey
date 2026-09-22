@@ -324,6 +324,12 @@ a.btn{text-decoration:none;color:#fff}
 .auth input:focus{outline:none;background:#fff;border-color:var(--primary);
  box-shadow:0 0 0 3px rgba(31,95,107,.13)}
 .auth .field{margin-bottom:15px}
+.auth .keep-row{display:flex;align-items:center;gap:10px;margin-bottom:15px;min-height:var(--tap);cursor:pointer;user-select:none}
+.auth .keep-row input{appearance:none;-webkit-appearance:none;flex:0 0 24px;width:24px;height:24px;margin:0;border-radius:6px;border:2px solid var(--line);background:var(--card);cursor:pointer;position:relative;transition:background 120ms ease,border-color 120ms ease}
+.auth .keep-row input:checked{background:var(--primary);border-color:var(--primary)}
+.auth .keep-row input:checked::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.auth .keep-row input:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.auth .keep-label{font-size:15px;font-weight:600;color:var(--slate)}
 .auth .btn{display:flex;align-items:center;justify-content:center;width:100%;
  min-height:52px;border:0;border-radius:12px;background:var(--primary);color:#fff;
  font-size:16.5px;font-weight:600;cursor:pointer;margin-top:10px;
@@ -936,20 +942,29 @@ const SUPABASE_ANON_KEY = "%VITE_SUPABASE_ANON_KEY%";
    It gives the same device a stable identity across visits without any
    sign-in screen, and pushes survey copies to the office in the background. */
 let sbClient = null;
+let sbStorage = null;
 let syncRunning = false;
 
 (async function initSupabase(){
   try {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.indexOf('%') === 0) return;
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    sbStorage = {
+      persistent: true,
+      _s(){ return this.persistent ? localStorage : sessionStorage; },
+      getItem(k){ return this._s().getItem(k); },
+      setItem(k,v){ this._s().setItem(k,v); },
+      removeItem(k){ localStorage.removeItem(k); sessionStorage.removeItem(k); }
+    };
     sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: sbStorage }
     });
     window.supabase = sbClient;
     console.log('Supabase client ready', SUPABASE_URL);
     const { data: existing } = await sbClient.auth.getSession();
     if (!existing.session) {
       try {
+        sbStorage.persistent = true;
         const { data, error } = await sbClient.auth.signInAnonymously();
         console.log('Anonymous session', error ? error.message || error : (data && data.user && data.user.id) || 'no user');
       } catch(e) {
@@ -2962,6 +2977,17 @@ function signInSuccess(then){
   }, reduce ? 0 : 300);
 }
 
+function clearSbStores(){
+  try {
+    [localStorage, sessionStorage].forEach(s => {
+      for (let i = s.length - 1; i >= 0; i--) {
+        const k = s.key(i);
+        if (k && k.indexOf('-auth-token') !== -1) s.removeItem(k);
+      }
+    });
+  } catch(e){}
+}
+
 async function adminSignIn(){
   const btn = document.querySelector('.auth .btn');
   if (btn && btn.disabled) return;
@@ -2988,11 +3014,14 @@ async function adminSignIn(){
       }
       await sbClient.auth.signOut();
     }
+    const keep = document.getElementById('keepSignIn');
+    sbStorage.persistent = !!(keep && keep.checked);
+    clearSbStores();
     const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
     if (error || !data.user){
       stopSignInAnimation();
       adminErr = (error && error.message) || 'Sign in failed. Check your email and password.';
-      try { await sbClient.auth.signInAnonymously(); } catch(e){}
+      try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
       renderAdmin();
       return;
     }
@@ -3001,7 +3030,7 @@ async function adminSignIn(){
       stopSignInAnimation();
       await sbClient.auth.signOut();
       adminErr = 'This account does not have office access.';
-      try { await sbClient.auth.signInAnonymously(); } catch(e){}
+      try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
       renderAdmin();
       return;
     }
@@ -3012,7 +3041,7 @@ async function adminSignIn(){
   } catch(e){
     stopSignInAnimation();
     adminErr = 'Something went wrong. Try again.';
-    try { await sbClient.auth.signInAnonymously(); } catch(e2){}
+    try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e2){}
     renderAdmin();
   }
 }
@@ -3027,7 +3056,7 @@ async function adminSignOut(){
   adminDetailRow = null; adminDetailPhotos = []; adminDetailLoading = false; adminDetailError = null;
   adminPdfBusy = false; adminPdfError = null;
   adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
-  try { await sbClient.auth.signInAnonymously(); } catch(e){}
+  try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
   navigate('/');
 }
 
@@ -3619,7 +3648,7 @@ async function renderAdmin(){
         adminEmail = null;
         adminChecking = false;
         adminErr = '';
-        try { await sbClient.auth.signInAnonymously(); } catch(e){}
+        try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
         return renderAdmin();
       }
       adminChecking = false; adminErr = '';
@@ -3651,6 +3680,10 @@ async function renderAdmin(){
             <input id="e" type="email" autocomplete="email"></div>
           <div class="field"><label for="p">Password</label>
             <input id="p" type="password" autocomplete="current-password"></div>
+          <label class="keep-row">
+            <input type="checkbox" id="keepSignIn">
+            <span class="keep-label">Keep me signed in</span>
+          </label>
           <button class="btn" data-act="adminSignIn">Sign in</button>
           ${adminErr ? `<div class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/>
