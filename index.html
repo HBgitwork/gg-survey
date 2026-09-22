@@ -1007,38 +1007,65 @@ const SUPABASE_ANON_KEY = "%VITE_SUPABASE_ANON_KEY%";
 let sbClient = null;
 let sbStorage = null;
 let syncRunning = false;
+let currentUid = null;
+let clientReady;
+let clientResolve;
+clientReady = new Promise(r => { clientResolve = r; });
 
-(async function initSupabase(){
+function isAnonymousSession(session){
+  if (!session || !session.user) return false;
+  const meta = session.user.user_metadata || {};
+  const amr = session.user.app_metadata || {};
+  return !!(meta.is_anonymous || amr.is_anonymous || meta.provider === 'anonymous');
+}
+
+(function initSupabase(){
   try {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.indexOf('%') === 0) return;
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-    sbStorage = {
-      persistent: true,
-      _s(){ return this.persistent ? localStorage : sessionStorage; },
-      getItem(k){ return this._s().getItem(k); },
-      setItem(k,v){ this._s().setItem(k,v); },
-      removeItem(k){ localStorage.removeItem(k); sessionStorage.removeItem(k); }
-    };
-    sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: sbStorage }
-    });
-    window.supabase = sbClient;
-    console.log('Supabase client ready', SUPABASE_URL);
-    const { data: existing } = await sbClient.auth.getSession();
-    if (!existing.session) {
-      try {
-        sbStorage.persistent = true;
-        const { data, error } = await sbClient.auth.signInAnonymously();
-        console.log('Anonymous session', error ? error.message || error : (data && data.user && data.user.id) || 'no user');
-      } catch(e) {
-        console.log('Anonymous session', e && e.message ? e.message : e);
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.indexOf('%') === 0){ clientResolve(); return; }
+    import('https://esm.sh/@supabase/supabase-js@2').then(async ({ createClient }) => {
+      sbStorage = {
+        persistent: true,
+        _s(){ return this.persistent ? localStorage : sessionStorage; },
+        getItem(k){ return this._s().getItem(k); },
+        setItem(k,v){ this._s().setItem(k,v); },
+        removeItem(k){ localStorage.removeItem(k); sessionStorage.removeItem(k); }
+      };
+      sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: sbStorage }
+      });
+      window.supabase = sbClient;
+      console.log('Supabase client ready', SUPABASE_URL);
+      clientResolve();
+      const { data: existing } = await sbClient.auth.getSession();
+      if (!existing.session) {
+        try {
+          sbStorage.persistent = true;
+          const { data, error } = await sbClient.auth.signInAnonymously();
+          console.log('Anonymous session', error ? error.message || error : (data && data.user && data.user.id) || 'no user');
+        } catch(e) {
+          console.log('Anonymous session', e && e.message ? e.message : e);
+        }
+      } else {
+        console.log('Anonymous session', existing.session.user && existing.session.user.id);
       }
-    } else {
-      console.log('Anonymous session', existing.session.user && existing.session.user.id);
-    }
-    syncPending();
+      const { data: settled } = await sbClient.auth.getSession();
+      currentUid = settled.session ? settled.session.user.id : null;
+      sbClient.auth.onAuthStateChange((evt, session) => {
+        const newUid = session ? session.user.id : null;
+        if (newUid !== currentUid){
+          currentUid = newUid;
+          adminListReqId++;
+          adminSurveyorsReqId++;
+        }
+      });
+      syncPending();
+    }).catch(e => {
+      console.log('Anonymous session', e && e.message ? e.message : e);
+      clientResolve();
+    });
   } catch(e) {
     console.log('Anonymous session', e && e.message ? e.message : e);
+    clientResolve();
   }
 })();
 
@@ -1352,6 +1379,9 @@ function buildSurveyRow(rec, uid){
   };
 }
 
+const syncFailCounts = {};
+const SYNC_FAIL_CEILING = 3;
+
 async function syncPending(){
   if (syncRunning) return;
   syncRunning = true;
@@ -1359,13 +1389,26 @@ async function syncPending(){
     if (!sbClient || !navigator.onLine) return;
     const { data: sessionData } = await sbClient.auth.getSession();
     if (!sessionData || !sessionData.session) return;
+    if (!isAnonymousSession(sessionData.session)) return;
     const uid = sessionData.session.user.id;
     const recs = await Store.all();
     const pending = recs.filter(r => needsSync(r));
     for (const rec of pending){
+      if (syncFailCounts[rec.id] >= SYNC_FAIL_CEILING) continue;
       const row = buildSurveyRow(rec, uid);
       const { error } = await sbClient.from('surveys').upsert(row);
-      if (error){ console.error('Survey sync failed', { code: error.code, message: error.message, details: error.details, hint: error.hint, error }); continue; }
+      if (error){
+        const code = error.code || 'unknown';
+        const n = (syncFailCounts[rec.id] || 0) + 1;
+        syncFailCounts[rec.id] = n;
+        if (n >= SYNC_FAIL_CEILING){
+          console.error('SYNC GIVING UP', rec.id, code);
+        } else {
+          console.error('Survey sync failed', { code, message: error.message, details: error.details, hint: error.hint, error });
+        }
+        continue;
+      }
+      delete syncFailCounts[rec.id];
       rec.syncedAt = new Date().toISOString();
       try { await Store.put(rec); } catch(e) {}
       await syncPhotos(rec, uid);
@@ -1486,10 +1529,23 @@ async function syncOne(rec){
     if (!sbClient || !navigator.onLine) return false;
     const { data: sessionData } = await sbClient.auth.getSession();
     if (!sessionData || !sessionData.session) return false;
+    if (!isAnonymousSession(sessionData.session)) return false;
     const uid = sessionData.session.user.id;
+    if (syncFailCounts[rec.id] >= SYNC_FAIL_CEILING) return false;
     const row = buildSurveyRow(rec, uid);
     const { error } = await sbClient.from('surveys').upsert(row);
-    if (error){ console.error('Survey sync failed', { code: error.code, message: error.message, details: error.details, hint: error.hint, error }); return false; }
+    if (error){
+      const code = error.code || 'unknown';
+      const n = (syncFailCounts[rec.id] || 0) + 1;
+      syncFailCounts[rec.id] = n;
+      if (n >= SYNC_FAIL_CEILING){
+        console.error('SYNC GIVING UP', rec.id, code);
+      } else {
+        console.error('Survey sync failed', { code, message: error.message, details: error.details, hint: error.hint, error });
+      }
+      return false;
+    }
+    delete syncFailCounts[rec.id];
     rec.syncedAt = new Date().toISOString();
     try { await Store.put(rec); } catch(e) {}
     const total = countPhotos(rec);
@@ -3137,7 +3193,7 @@ async function adminSignOut(){
   adminListStatus = 'loading'; adminListError = null; adminListReqId = 0;
   adminDetailRow = null; adminDetailPhotos = []; adminDetailLoading = false; adminDetailError = null;
   adminPdfBusy = false; adminPdfError = null;
-  adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
+  adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 }; adminCountsLoaded = false;
   try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
   navigate('/');
 }
@@ -3147,7 +3203,7 @@ function handleRouteChange(){
   if (S.record) persist();
   const r = currentRoute();
   if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; S.selectMode = false; S.selectedIds.clear(); loadList(); }
-  else if (r === 'admin'){ adminErr = ''; adminChecking = true; adminView = 'list'; adminDetailRow = null; adminDetailPhotos = []; adminPdfError = null; adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; renderAdmin(); }
+  else if (r === 'admin'){ adminErr = ''; adminChecking = true; adminView = 'list'; adminDetailRow = null; adminDetailPhotos = []; adminPdfError = null; adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; adminListStatus = 'loading'; adminListError = null; adminListReqId = 0; adminSurveys = []; adminSearchQuery = ''; adminSearchText = ''; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 }; adminCountsLoaded = false; renderAdmin(); }
   else if (r === 'submitted' && S.record){ render(); }
   else render();
 }
@@ -3244,7 +3300,9 @@ let adminFilter = 'all';
 let adminSurveyor = '';
 let adminSurveyors = [];
 let adminSurveyorsLoaded = false;
+let adminSurveyorsReqId = 0;
 let adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
+let adminCountsLoaded = false;
 
 const SAMPLE_SURVEYS = [
   { id:'sample-1', job_ref:'GG-24817', site_name:'Stockport Branch', surveyed_by:'Arron Slinger', survey_date:'2026-09-16', submitted_at:'2026-09-16T14:32:00Z', is_sample:true, photo_count:4 },
@@ -3272,7 +3330,10 @@ const FILTER_DEFS = [
 ];
 
 async function adminLoadSurveyors(){
+  const reqId = ++adminSurveyorsReqId;
   if (!sbClient){ adminSurveyors = []; adminSurveyorsLoaded = true; return; }
+  await clientReady;
+  if (reqId !== adminSurveyorsReqId) return;
   try {
     const { data, error } = await sbClient.from('survey_list').select('surveyed_by');
     if (error) throw error;
@@ -3284,6 +3345,7 @@ async function adminLoadSurveyors(){
     )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
     adminSurveyors = names;
   } catch(e){
+    if (reqId !== adminSurveyorsReqId) return;
     console.error('SURVEYOR FILTER', {
       code: e && e.code,
       message: e && e.message,
@@ -3293,6 +3355,7 @@ async function adminLoadSurveyors(){
     adminSurveyors = [];
   }
   adminSurveyorsLoaded = true;
+  if (reqId !== adminSurveyorsReqId) return;
   renderAdmin();
 }
 
@@ -3321,6 +3384,8 @@ async function adminLoadList(){
   if (!sbClient) { adminListStatus = 'error'; adminListError = 'Cannot reach the server. Check your connection and try again.'; adminSurveys = []; renderAdmin(); return; }
   adminListStatus = 'loading'; adminListError = null;
   renderAdmin();
+  await clientReady;
+  if (reqId !== adminListReqId) return;
   try {
     let base = sbClient.from('survey_list').select('*').eq('status','SUBMITTED');
     const q = adminSearchQuery.trim();
@@ -3352,6 +3417,7 @@ async function adminLoadList(){
     ]);
     if (reqId !== adminListReqId) return;
     adminCounts = { all: allCount||0, week: weekCount||0, photos: photosCount||0, real: realCount||0, sample: sampleCount||0 };
+    adminCountsLoaded = true;
     adminListStatus = adminSurveys.length > 0 ? 'ready' : 'empty';
   } catch(e){
     if (reqId !== adminListReqId) return;
@@ -3364,8 +3430,9 @@ async function adminLoadList(){
     adminListError = e;
     adminSurveys = [];
     adminListStatus = 'error';
+  } finally {
+    if (reqId === adminListReqId) renderAdmin();
   }
-  renderAdmin();
 }
 
 async function adminLoadDetail(id){
@@ -3518,9 +3585,9 @@ function adminRenderList(){
   const pendingSearch = adminSearchText.trim() !== adminSearchQuery;
 
   const pills = FILTER_DEFS.map(f => {
-    const cnt = adminCounts[f.id] != null ? adminCounts[f.id] : 0;
     const active = adminFilter === f.id;
-    return `<button data-act="adminFilter" data-v="${f.id}" aria-pressed="${active}">${f.label}<span class="cnt">${cnt}</span></button>`;
+    const cntHtml = adminCountsLoaded ? `<span class="cnt">${adminCounts[f.id] != null ? adminCounts[f.id] : 0}</span>` : '';
+    return `<button data-act="adminFilter" data-v="${f.id}" aria-pressed="${active}">${f.label}${cntHtml}</button>`;
   }).join('');
 
   const surveyorLabel = adminSurveyor || 'All surveyors';
@@ -3724,14 +3791,12 @@ function adminOpenPhoto(url, caption){
 }
 
 async function isAnonymous(session){
-  if (!session || !session.user) return true;
-  const meta = session.user.user_metadata || {};
-  const amr = session.user.app_metadata || {};
-  return !!(meta.is_anonymous || amr.is_anonymous || meta.provider === 'anonymous');
+  return isAnonymousSession(session);
 }
 
 async function checkOfficeAccess(uid){
   if (!sbClient) return false;
+  await clientReady;
   const { data, error } = await sbClient.from('staff').select('is_office').eq('user_id', uid).maybeSingle();
   if (error) return false;
   return !!(data && data.is_office);
@@ -3743,6 +3808,7 @@ async function renderAdmin(){
     startSignInAnimation('Checking access');
     try {
       if (!sbClient){ stopSignInAnimation(); adminChecking = false; adminErr = 'Cannot reach the server. Check your connection and try again.'; return renderAdmin(); }
+      await clientReady;
       const { data: sd } = await sbClient.auth.getSession();
       const session = sd && sd.session;
       if (!session || await isAnonymous(session)){
@@ -3809,7 +3875,7 @@ async function renderAdmin(){
   if (adminView === 'detail'){
     adminRenderDetail();
   } else {
-    if (adminListStatus !== 'loading' && adminListStatus !== 'error' && adminSurveys.length === 0 && !adminListError && !adminSearchQuery){
+    if (adminListStatus === 'loading' && adminListReqId === 0){
       adminLoadList();
     } else {
       adminRenderList();
