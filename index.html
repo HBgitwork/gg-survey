@@ -2737,7 +2737,7 @@ app.addEventListener('click', async (e) => {
     }
     case 'adminFilter': e.stopPropagation(); { adminFilter = t.dataset.v; adminLoadList(); break; }
     case 'adminClearFilters': e.stopPropagation(); {
-      adminSearchQuery = ''; adminFilter = 'all'; adminSurveyor = '';
+      adminSearchQuery = ''; adminSearchText = ''; adminFilter = 'all'; adminSurveyor = '';
       adminSortCol = 'submitted_at'; adminSortDir = 'desc';
       adminLoadList();
       break;
@@ -3022,7 +3022,7 @@ async function adminSignOut(){
   try { await sbClient.auth.signOut(); } catch(e){}
   adminEmail = null;
   adminErr = '';
-  adminView = 'list'; adminSurveys = []; adminSearchQuery = '';
+  adminView = 'list'; adminSurveys = []; adminSearchQuery = ''; adminSearchText = '';
   adminLoadingList = false; adminListError = null;
   adminDetailRow = null; adminDetailPhotos = []; adminDetailLoading = false; adminDetailError = null;
   adminPdfBusy = false; adminPdfError = null;
@@ -3114,6 +3114,9 @@ let adminErr = '';
 let adminView = 'list';
 let adminSurveys = [];
 let adminSearchQuery = '';
+let adminSearchText = '';
+let adminCountHtml = '';
+let adminRefocusSearch = false;
 let adminLoadingList = false;
 let adminListError = null;
 let adminDetailRow = null;
@@ -3365,7 +3368,9 @@ function adminRenderList(){
   }
 
   const countLabel = hasReal ? `${count} survey${count===1?'':'s'}` : (adminLoadingList ? '…' : '0 surveys');
-  const searchVal = esc(adminSearchQuery);
+  adminCountHtml = `<b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}`;
+  const searchVal = esc(adminSearchText);
+  const pendingSearch = adminSearchText.trim() !== adminSearchQuery;
 
   const pills = FILTER_DEFS.map(f => {
     const cnt = adminCounts[f.id] != null ? adminCounts[f.id] : 0;
@@ -3414,7 +3419,7 @@ function adminRenderList(){
       <div class="adm-sel-wrap">
         <select id="admSurveyor" aria-label="Filter by surveyor"${adminSurveyors.length === 0 ? ' disabled' : ''}>${surveyorOpts}</select>
       </div>
-      <div class="adm-count"><b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}</div>
+      <div class="adm-count">${pendingSearch ? 'Press Enter to search' : adminCountHtml}</div>
     </div>
     <div class="adm-scroll" id="admScroll">
       <div class="adm-scroll-inner">
@@ -3425,11 +3430,35 @@ function adminRenderList(){
 
   const si = document.getElementById('admSearch');
   if (si){
-    let timer = null;
+    if (adminRefocusSearch && !adminLoadingList){ adminRefocusSearch = false; si.focus(); }
     si.addEventListener('input', (e) => {
-      clearTimeout(timer);
-      const v = e.target.value;
-      timer = setTimeout(() => { adminSearchQuery = v; adminLoadList(); }, 250);
+      adminSearchText = e.target.value;
+      if (adminSearchText.trim() === ''){
+        const wasFiltered = adminSearchQuery !== '';
+        adminSearchQuery = ''; adminSearchText = '';
+        if (wasFiltered){ adminRefocusSearch = true; adminLoadList(); }
+        else { const c = document.querySelector('.adm-count'); if (c) c.innerHTML = adminCountHtml; }
+      } else {
+        const c = document.querySelector('.adm-count');
+        if (c) c.textContent = 'Press Enter to search';
+      }
+    });
+    si.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){
+        e.preventDefault();
+        const v = si.value.trim();
+        if (v === adminSearchQuery) return;
+        adminSearchQuery = v;
+        si.blur();
+        adminLoadList();
+      } else if (e.key === 'Escape'){
+        e.preventDefault();
+        const wasFiltered = adminSearchQuery !== '';
+        adminSearchText = ''; adminSearchQuery = '';
+        si.value = '';
+        if (wasFiltered){ adminRefocusSearch = true; adminLoadList(); }
+        else { const c = document.querySelector('.adm-count'); if (c) c.innerHTML = adminCountHtml; }
+      }
     });
   }
   const ms = document.getElementById('admMobileSort');
