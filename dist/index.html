@@ -91,7 +91,7 @@ h1,h2,label,button,.btn,.linkbtn,.step,.snav,.pill,.filters button,.yesno span,.
 /* ---------- shell ---------- */
 #app{height:100dvh;display:flex;flex-direction:column;background:var(--paper);visibility:hidden;overflow:hidden}
 .topbar{flex:0 0 auto;background:var(--paper);border-bottom:1px solid var(--line);
-  padding-block:max(env(safe-area-inset-top),14px) 14px}
+  padding-block:calc(14px + env(safe-area-inset-top, 0px)) 14px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
 /* Constrain header contents to the same measure as the content beneath.
    The divider rule still runs the full width of the window. */
@@ -129,7 +129,7 @@ h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700;letter-spacing:
 .eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--primary);margin:0 0 4px}
 @media (min-width:768px){ h1{font-size:28px} h2{font-size:26px} }
 
-main{flex:1 1 auto;min-height:0;padding-block:var(--pad) 28px}
+main{flex:1 1 auto;min-height:0;padding-block:var(--pad) calc(28px + env(safe-area-inset-bottom, 0px))}
 .bottombar{flex:0 0 auto;background:var(--card);border-top:1px solid var(--line);
   padding-block:12px max(env(safe-area-inset-bottom),12px)}
 /* Survey list: main is a flex column — filters pin, card list scrolls. */
@@ -214,7 +214,7 @@ a.btn{text-decoration:none;color:#fff}
 .pill.SENT{background:var(--success-soft);color:var(--success)}
 
 /* ---------- homepage ---------- */
-.home.landing{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.home.landing{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top, 0px)}
 .home.landing .shot{height:32dvh;min-height:200px;position:relative;overflow:hidden;
   flex:0 0 auto;background:var(--ink)}
 .home.landing .shot img{width:100%;height:100%;object-fit:cover;object-position:60% 55%;display:block}
@@ -256,7 +256,7 @@ a.btn{text-decoration:none;color:#fff}
   .home.landing .points{gap:9px;margin-bottom:22px}
 }
 .home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
-.home.door{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;padding-block:var(--pad) 15dvh;
+.home.door{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;padding-block:calc(var(--pad) + env(safe-area-inset-top, 0px)) calc(15dvh + env(safe-area-inset-bottom, 0px));
   background:radial-gradient(ellipse 90% 65% at 50% 30%, rgba(10,90,104,0.045), transparent 72%)}
 .home-actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px}
 .home-primary{font-size:18px;font-weight:700;min-height:56px}
@@ -266,7 +266,7 @@ a.btn{text-decoration:none;color:#fff}
 
 /* ---------- confirmation screen ---------- */
 .confirm{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:var(--pad) 15dvh;text-align:center}
+  padding:calc(var(--pad) + env(safe-area-inset-top, 0px)) var(--pad) calc(15dvh + env(safe-area-inset-bottom, 0px));text-align:center}
 .confirm-tick{width:64px;height:64px;border-radius:50%;background:var(--success-soft);
   display:flex;align-items:center;justify-content:center;margin:0 0 20px}
 .confirm-tick svg{width:32px;height:32px}
@@ -296,7 +296,7 @@ a.btn{text-decoration:none;color:#fff}
 .admin-signed b{color:var(--ink)}
 /* ---------- admin sign in ---------- */
 .auth{position:relative;min-height:100dvh;display:flex;align-items:center;
- justify-content:center;padding:24px;overflow:hidden}
+ justify-content:center;padding:calc(24px + env(safe-area-inset-top, 0px)) 24px 24px;overflow:hidden}
 .auth:before{content:"";position:absolute;inset:-2px;z-index:0;opacity:.5;
  background-image:linear-gradient(var(--line) 1px,transparent 1px),
                   linear-gradient(90deg,var(--line) 1px,transparent 1px);
@@ -315,15 +315,71 @@ a.btn{text-decoration:none;color:#fff}
  text-align:center;font-weight:700;margin-bottom:6px}
 .auth .sub{font-size:13.5px;color:var(--muted);text-align:center;
  margin-bottom:26px;line-height:1.45}
-.auth label{display:block;font-size:12.5px;font-weight:600;color:var(--slate);
+.auth label:not(.remember){display:block;font-size:12.5px;font-weight:600;color:var(--slate);
  margin-bottom:6px}
-.auth input{width:100%;min-height:52px;border:1.5px solid var(--line);
+.auth input:not([type="checkbox"]){width:100%;min-height:52px;border:1.5px solid var(--line);
  border-radius:12px;background:var(--paper);padding:0 14px;font-size:16px;
  color:var(--ink);font-family:inherit;
  transition:border-color 140ms ease,background 140ms ease,box-shadow 140ms ease}
-.auth input:focus{outline:none;background:#fff;border-color:var(--primary);
+.auth input:not([type="checkbox"]):focus{outline:none;background:#fff;border-color:var(--primary);
  box-shadow:0 0 0 3px rgba(31,95,107,.13)}
 .auth .field{margin-bottom:15px}
+.remember{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:44px;
+  margin-bottom:15px;
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.remember input[type="checkbox"]{
+  appearance:none;
+  -webkit-appearance:none;
+  flex:0 0 auto;
+  width:22px;
+  height:22px;
+  min-width:0;
+  min-height:0;
+  margin:0;
+  padding:0;
+  border:1.5px solid var(--line);
+  border-radius:6px;
+  background:var(--card);
+  display:grid;
+  place-content:center;
+  cursor:pointer;
+  transition:background-color .12s ease, border-color .12s ease;
+}
+.remember input[type="checkbox"]::after{
+  content:"";
+  width:5px;
+  height:9px;
+  border:solid var(--on-primary, #fff);
+  border-width:0 2px 2px 0;
+  transform:translateY(-1px) rotate(45deg);
+  opacity:0;
+}
+.remember input[type="checkbox"]:checked{
+  background:var(--primary);
+  border-color:var(--primary);
+}
+.remember input[type="checkbox"]:checked::after{ opacity:1 }
+.remember input[type="checkbox"]:hover{ border-color:var(--primary) }
+.remember input[type="checkbox"]:focus-visible{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(31,95,107,.12);
+}
+.remember span{
+  font-size:15px;
+  line-height:1.3;
+  color:var(--ink);
+}
+@media (pointer:coarse){
+  .remember{min-height:52px}
+}
 .auth .btn{display:flex;align-items:center;justify-content:center;width:100%;
  min-height:52px;border:0;border-radius:12px;background:var(--primary);color:#fff;
  font-size:16.5px;font-weight:600;cursor:pointer;margin-top:10px;
@@ -349,7 +405,7 @@ a.btn{text-decoration:none;color:#fff}
 /* ---------- step strip (narrow) ----------
    Eight steps share the width equally: seven numbered squares plus a
    Review button. Nothing scrolls or gets cut off at any phone width. */
-.steps{flex:0 0 auto;display:flex;gap:6px;padding-block:10px 12px;background:var(--paper);
+.steps{flex:0 0 auto;display:flex;gap:6px;padding-block:calc(10px + env(safe-area-inset-top, 0px)) 12px;background:var(--paper);
   border-bottom:1px solid var(--line);
   width:100%;max-width:100%;padding-inline:var(--pad)}
 .step{flex:1 1 0;min-width:0;height:34px;padding:0;border-radius:var(--r);border:1px solid var(--line);
@@ -479,6 +535,9 @@ dialog::backdrop{ background:rgba(14,20,23,.5) }
   display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
 .opt[aria-pressed="true"] .box{background:var(--primary);border-color:var(--primary)}
 .opt[aria-pressed="true"]{font-weight:600;color:var(--ink)}
+.opt .dot{flex:0 0 auto;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:13px;font-weight:700}
+.opt[aria-pressed="true"] .dot{border-color:var(--primary)}
 
 .confirmbox{ padding:var(--pad); overflow-y:auto }
 .confirmbox h3{margin:0 0 8px;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
@@ -742,7 +801,7 @@ body.modal-open{ overflow:hidden }
 /* ---------- admin dashboard ---------- */
 .adm{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
 .adm-top{flex:0 0 auto;background:var(--card);border-bottom:1px solid var(--line)}
-.adm-top-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
+.adm-top-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top, 0px)) var(--pad) 12px}
 .adm-mark{width:32px;height:32px;flex:0 0 auto}
 .adm-top h1{font-size:18px;font-weight:600;margin:0;color:var(--ink);flex:1 1 auto;min-width:0}
 .adm-user{display:flex;align-items:center;gap:10px;flex:0 0 auto}
@@ -770,7 +829,7 @@ body.modal-open{ overflow:hidden }
 .adm-count b{color:var(--ink);font-weight:700}
 
 .adm-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.adm-scroll-inner{max-width:1180px;margin:0 auto;padding:0 var(--pad) 28px}
+.adm-scroll-inner{max-width:1180px;margin:0 auto;padding:0 var(--pad) calc(28px + env(safe-area-inset-bottom, 0px))}
 
 .adm-table{width:100%;border-collapse:collapse;font-size:14px}
 .adm-table thead th{text-align:left;font-size:12px;font-weight:600;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -815,7 +874,7 @@ body.modal-open{ overflow:hidden }
 /* admin detail */
 .adm-detail{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
 .adm-detail-top{flex:0 0 auto;background:var(--card);border-bottom:1px solid var(--line)}
-.adm-detail-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
+.adm-detail-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top, 0px)) var(--pad) 12px}
 .adm-back{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--steel);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 120ms ease,border-color 120ms ease;flex:0 0 auto}
 .adm-back:hover{background:var(--paper);border-color:var(--steel)}
 .adm-back svg{width:16px;height:16px;margin-right:6px}
@@ -828,7 +887,7 @@ body.modal-open{ overflow:hidden }
 .adm-dl svg{width:16px;height:16px}
 
 .adm-detail-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.adm-detail-inner2{max-width:880px;margin:0 auto;padding:24px var(--pad) 48px}
+.adm-detail-inner2{max-width:880px;margin:0 auto;padding:24px var(--pad) calc(48px + env(safe-area-inset-bottom, 0px))}
 .adm-sec{margin-bottom:28px}
 .adm-sec h2{font-size:17px;font-weight:700;color:var(--ink);margin:0 0 4px;letter-spacing:-.01em}
 .adm-sec .sub{font-size:13.5px;color:var(--muted);margin:0 0 14px}
@@ -876,8 +935,13 @@ body.modal-open{ overflow:hidden }
 .adm-filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .adm-filters button .cnt{font-weight:700;margin-left:5px;opacity:.7}
 .adm-sel-wrap{flex:0 0 auto;position:relative;width:170px;overflow:hidden;text-overflow:ellipsis}
-.adm-sel-wrap select{min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer;width:100%}
-.adm-sel-wrap select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
+.adm-surveyor-btn{display:flex;align-items:center;gap:6px;min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:border-color 120ms ease,box-shadow 120ms ease}
+.adm-surveyor-btn:hover{border-color:var(--steel)}
+.adm-surveyor-btn:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
+.adm-surveyor-btn .chev{flex:0 0 auto;margin-left:auto;margin-right:-20px;width:16px;height:16px;color:var(--muted);pointer-events:none}
+@media (pointer:coarse){
+  .adm-surveyor-btn{min-height:52px}
+}
 
 
 
@@ -895,9 +959,14 @@ body.modal-open{ overflow:hidden }
 .adm-mobile-sort select{min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer}
 .adm-mobile-sort select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
 @media (max-width:819px){
-  .adm-mobile-sort{display:flex}
+  .adm-mobile-sort{display:flex;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .adm-mobile-sort select{width:100%}
   .adm-search{flex:1 1 100%}
-  .adm-count{margin-left:0}
+  .adm-filters{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;flex:1 1 100%;scrollbar-width:none;
+    margin-left:calc(-1 * var(--pad));margin-right:calc(-1 * var(--pad));padding-left:var(--pad);padding-right:var(--pad);padding-bottom:4px}
+  .adm-filters::-webkit-scrollbar{display:none}
+  .adm-sel-wrap{flex:1 1 0;min-width:0;width:auto;overflow:hidden;text-overflow:ellipsis}
+  .adm-count{margin-left:0;flex:0 0 auto}
 }
 .adm-clear-btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);color:var(--steel);font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:0 0 auto}
 .adm-clear-btn:hover{background:var(--paper);border-color:var(--steel)}
@@ -936,20 +1005,29 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
    It gives the same device a stable identity across visits without any
    sign-in screen, and pushes survey copies to the office in the background. */
 let sbClient = null;
+let sbStorage = null;
 let syncRunning = false;
 
 (async function initSupabase(){
   try {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.indexOf('%') === 0) return;
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    sbStorage = {
+      persistent: true,
+      _s(){ return this.persistent ? localStorage : sessionStorage; },
+      getItem(k){ return this._s().getItem(k); },
+      setItem(k,v){ this._s().setItem(k,v); },
+      removeItem(k){ localStorage.removeItem(k); sessionStorage.removeItem(k); }
+    };
     sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: sbStorage }
     });
     window.supabase = sbClient;
     console.log('Supabase client ready', SUPABASE_URL);
     const { data: existing } = await sbClient.auth.getSession();
     if (!existing.session) {
       try {
+        sbStorage.persistent = true;
         const { data, error } = await sbClient.auth.signInAnonymously();
         console.log('Anonymous session', error ? error.message || error : (data && data.user && data.user.id) || 'no user');
       } catch(e) {
@@ -1876,6 +1954,12 @@ sheet.addEventListener('click', (e) => {
   if (!t){ if (e.target === sheet) sheet.close(); return; }
   const act = t.dataset.act;
   if (act === 'sheetdone'){ sheet.close(); return; }
+  if (act === 'admSurveyorChoice'){
+    sheet.close();
+    adminSurveyor = t.dataset.v || '';
+    adminLoadList();
+    return;
+  }
   if (act === 'opt'){
     const f = FIELD_INDEX[sheetField];
     const cur = arr(S.answers[f.id]);
@@ -2737,9 +2821,22 @@ app.addEventListener('click', async (e) => {
     }
     case 'adminFilter': e.stopPropagation(); { adminFilter = t.dataset.v; adminLoadList(); break; }
     case 'adminClearFilters': e.stopPropagation(); {
-      adminSearchQuery = ''; adminFilter = 'all'; adminSurveyor = '';
+      adminSearchQuery = ''; adminSearchText = ''; adminFilter = 'all'; adminSurveyor = '';
       adminSortCol = 'submitted_at'; adminSortDir = 'desc';
       adminLoadList();
+      break;
+    }
+    case 'adminShowAll': e.stopPropagation(); {
+      adminSearchQuery = ''; adminSearchText = ''; adminFilter = 'all'; adminSurveyor = '';
+      adminLoadList();
+      break;
+    }
+    case 'adminRetryList': e.stopPropagation(); {
+      adminLoadList();
+      break;
+    }
+    case 'adminSurveyorPick': e.stopPropagation(); {
+      adminOpenSurveyorPicker();
       break;
     }
     case 'del': await deleteSurvey(t.dataset.id); break;
@@ -2962,6 +3059,17 @@ function signInSuccess(then){
   }, reduce ? 0 : 300);
 }
 
+function clearSbStores(){
+  try {
+    [localStorage, sessionStorage].forEach(s => {
+      for (let i = s.length - 1; i >= 0; i--) {
+        const k = s.key(i);
+        if (k && k.indexOf('-auth-token') !== -1) s.removeItem(k);
+      }
+    });
+  } catch(e){}
+}
+
 async function adminSignIn(){
   const btn = document.querySelector('.auth .btn');
   if (btn && btn.disabled) return;
@@ -2988,11 +3096,14 @@ async function adminSignIn(){
       }
       await sbClient.auth.signOut();
     }
+    const keep = document.getElementById('keepSignIn');
+    sbStorage.persistent = !!(keep && keep.checked);
+    clearSbStores();
     const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
     if (error || !data.user){
       stopSignInAnimation();
       adminErr = (error && error.message) || 'Sign in failed. Check your email and password.';
-      try { await sbClient.auth.signInAnonymously(); } catch(e){}
+      try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
       renderAdmin();
       return;
     }
@@ -3001,7 +3112,7 @@ async function adminSignIn(){
       stopSignInAnimation();
       await sbClient.auth.signOut();
       adminErr = 'This account does not have office access.';
-      try { await sbClient.auth.signInAnonymously(); } catch(e){}
+      try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
       renderAdmin();
       return;
     }
@@ -3012,7 +3123,7 @@ async function adminSignIn(){
   } catch(e){
     stopSignInAnimation();
     adminErr = 'Something went wrong. Try again.';
-    try { await sbClient.auth.signInAnonymously(); } catch(e2){}
+    try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e2){}
     renderAdmin();
   }
 }
@@ -3022,12 +3133,12 @@ async function adminSignOut(){
   try { await sbClient.auth.signOut(); } catch(e){}
   adminEmail = null;
   adminErr = '';
-  adminView = 'list'; adminSurveys = []; adminSearchQuery = '';
-  adminLoadingList = false; adminListError = null;
+  adminView = 'list'; adminSurveys = []; adminSearchQuery = ''; adminSearchText = '';
+  adminListStatus = 'loading'; adminListError = null; adminListReqId = 0;
   adminDetailRow = null; adminDetailPhotos = []; adminDetailLoading = false; adminDetailError = null;
   adminPdfBusy = false; adminPdfError = null;
   adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
-  try { await sbClient.auth.signInAnonymously(); } catch(e){}
+  try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
   navigate('/');
 }
 
@@ -3114,8 +3225,12 @@ let adminErr = '';
 let adminView = 'list';
 let adminSurveys = [];
 let adminSearchQuery = '';
-let adminLoadingList = false;
+let adminSearchText = '';
+let adminCountHtml = '';
+let adminRefocusSearch = false;
+let adminListStatus = 'loading';
 let adminListError = null;
+let adminListReqId = 0;
 let adminDetailRow = null;
 let adminDetailPhotos = [];
 let adminDetailLoading = false;
@@ -3181,9 +3296,30 @@ async function adminLoadSurveyors(){
   renderAdmin();
 }
 
+function adminOpenSurveyorPicker(){
+  const opts = [''].concat(adminSurveyors.slice());
+  const rows = opts.map((name, i) => {
+    const label = name || 'All surveyors';
+    const selected = (name || '') === adminSurveyor;
+    if (i === 0 && adminSurveyors.length === 0){
+      return `<button type="button" class="opt" data-act="admSurveyorChoice" data-v="" aria-pressed="${selected}"><span class="dot" aria-hidden="true">${selected ? '&#10003;' : ''}</span><span>${esc(label)}</span></button>
+        <p class="empty-note" style="padding:0 var(--pad) 12px;color:var(--muted);font-size:13.5px">No surveyors yet.</p>`;
+    }
+    return `<button type="button" class="opt" data-act="admSurveyorChoice" data-v="${esc(name)}" aria-pressed="${selected}"><span class="dot" aria-hidden="true">${selected ? '&#10003;' : ''}</span><span>${esc(label)}</span></button>`;
+  }).join('');
+  sheetBody.innerHTML = `
+    <div class="sheet-head">
+      <h3>Surveyor</h3>
+    </div>
+    <div class="sheet-list">${rows}</div>`;
+  sheet.className = 'picker';
+  openDialog(sheet);
+}
+
 async function adminLoadList(){
-  if (!sbClient) { adminListError = 'Cannot reach the server. Check your connection and try again.'; adminLoadingList = false; renderAdmin(); return; }
-  adminLoadingList = true; adminListError = null;
+  const reqId = ++adminListReqId;
+  if (!sbClient) { adminListStatus = 'error'; adminListError = 'Cannot reach the server. Check your connection and try again.'; adminSurveys = []; renderAdmin(); return; }
+  adminListStatus = 'loading'; adminListError = null;
   renderAdmin();
   try {
     let base = sbClient.from('survey_list').select('*').eq('status','SUBMITTED');
@@ -3203,6 +3339,7 @@ async function adminLoadList(){
     const sortCol = SORT_COLS[adminSortCol] || 'submitted_at';
     const { data, error } = await base.order(sortCol, { ascending: adminSortDir === 'asc' });
     if (error) throw error;
+    if (reqId !== adminListReqId) return;
     adminSurveys = data || [];
 
     /* counts: run unfiltered count queries for each pill */
@@ -3213,12 +3350,21 @@ async function adminLoadList(){
       sbClient.from('survey_list').select('id',{ count:'exact', head:true }).eq('status','SUBMITTED').eq('is_sample', false),
       sbClient.from('survey_list').select('id',{ count:'exact', head:true }).eq('status','SUBMITTED').eq('is_sample', true),
     ]);
+    if (reqId !== adminListReqId) return;
     adminCounts = { all: allCount||0, week: weekCount||0, photos: photosCount||0, real: realCount||0, sample: sampleCount||0 };
+    adminListStatus = adminSurveys.length > 0 ? 'ready' : 'empty';
   } catch(e){
-    adminListError = (e && e.message) || 'Could not load surveys. Try again.';
+    if (reqId !== adminListReqId) return;
+    console.error('SURVEY LIST', {
+      code: e && e.code,
+      message: e && e.message,
+      details: e && e.details,
+      hint: e && e.hint
+    });
+    adminListError = e;
     adminSurveys = [];
+    adminListStatus = 'error';
   }
-  adminLoadingList = false;
   renderAdmin();
 }
 
@@ -3305,15 +3451,17 @@ function adminRenderList(){
   const isFiltered = adminSearchQuery.trim() || adminFilter !== 'all' || adminSurveyor;
 
   let body;
-  if (adminListError){
-    body = `<div class="adm-error"><div class="box">${esc(adminListError)}</div></div>`;
-  } else if (adminLoadingList){
+  if (adminListStatus === 'loading'){
     body = `<div class="adm-loading"><div class="spin"></div><p>Loading surveys…</p></div>`;
-  } else if (all.length === 0){
-    if (isFiltered){
-      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No surveys match that.</h2><button class="adm-clear-btn" data-act="adminClearFilters">Clear filters</button></div>`;
+  } else if (adminListStatus === 'error'){
+    body = `<div class="adm-empty">${EMPTY_SVG}<h2>Could not load the surveys</h2><p>Something went wrong reaching the office records. Nothing has been lost. Try again in a moment.</p><button class="adm-clear-btn" data-act="adminRetryList">Try again</button></div>`;
+  } else if (adminListStatus === 'empty'){
+    if (adminFilter === 'real' && !adminSearchQuery.trim() && !adminSurveyor){
+      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No real surveys yet</h2><p>Every survey so far is marked as sample from testing. One appears here as soon as a survey is submitted with the sample marker cleared.</p><button class="adm-clear-btn" data-act="adminShowAll">Show all surveys</button></div>`;
+    } else if (isFiltered){
+      body = `<div class="adm-empty">${EMPTY_SVG}<h2>Nothing matches</h2><p>No submitted survey matches the filters you have on.</p><button class="adm-clear-btn" data-act="adminShowAll">Show all surveys</button></div>`;
     } else {
-      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No surveys submitted yet.</h2><p>Submitted surveys will appear here.</p></div>`;
+      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No surveys yet</h2><p>Submitted surveys appear here as soon as an engineer sends one.</p></div>`;
     }
   } else {
     const rows = all.map(s => {
@@ -3364,8 +3512,10 @@ function adminRenderList(){
       <div class="adm-cards">${cards}</div>`;
   }
 
-  const countLabel = hasReal ? `${count} survey${count===1?'':'s'}` : (adminLoadingList ? '…' : '0 surveys');
-  const searchVal = esc(adminSearchQuery);
+  const countLabel = hasReal ? `${count} survey${count===1?'':'s'}` : (adminListStatus === 'loading' ? '…' : '0 surveys');
+  adminCountHtml = `<b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}`;
+  const searchVal = esc(adminSearchText);
+  const pendingSearch = adminSearchText.trim() !== adminSearchQuery;
 
   const pills = FILTER_DEFS.map(f => {
     const cnt = adminCounts[f.id] != null ? adminCounts[f.id] : 0;
@@ -3373,9 +3523,7 @@ function adminRenderList(){
     return `<button data-act="adminFilter" data-v="${f.id}" aria-pressed="${active}">${f.label}<span class="cnt">${cnt}</span></button>`;
   }).join('');
 
-  const surveyorOpts = ['<option value="">All surveyors</option>'].concat(
-    adminSurveyors.map(n => `<option value="${esc(n)}"${adminSurveyor === n ? ' selected' : ''}>${esc(n)}</option>`)
-  ).join('');
+  const surveyorLabel = adminSurveyor || 'All surveyors';
 
   const mobileSortOpts = [
     `<option value="submitted_at:desc"${adminSortCol==='submitted_at'&&adminSortDir==='desc'?' selected':''}>Submitted, newest first</option>`,
@@ -3412,9 +3560,9 @@ function adminRenderList(){
       </div>
       <div class="adm-filters">${pills}</div>
       <div class="adm-sel-wrap">
-        <select id="admSurveyor" aria-label="Filter by surveyor"${adminSurveyors.length === 0 ? ' disabled' : ''}>${surveyorOpts}</select>
+        <button type="button" class="adm-surveyor-btn" data-act="adminSurveyorPick" aria-label="Filter by surveyor" aria-haspopup="dialog"><span style="overflow:hidden;text-overflow:ellipsis">${esc(surveyorLabel)}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
       </div>
-      <div class="adm-count"><b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}</div>
+      <div class="adm-count">${pendingSearch ? 'Press Enter to search' : adminCountHtml}</div>
     </div>
     <div class="adm-scroll" id="admScroll">
       <div class="adm-scroll-inner">
@@ -3425,11 +3573,35 @@ function adminRenderList(){
 
   const si = document.getElementById('admSearch');
   if (si){
-    let timer = null;
+    if (adminRefocusSearch && adminListStatus !== 'loading'){ adminRefocusSearch = false; si.focus(); }
     si.addEventListener('input', (e) => {
-      clearTimeout(timer);
-      const v = e.target.value;
-      timer = setTimeout(() => { adminSearchQuery = v; adminLoadList(); }, 250);
+      adminSearchText = e.target.value;
+      if (adminSearchText.trim() === ''){
+        const wasFiltered = adminSearchQuery !== '';
+        adminSearchQuery = ''; adminSearchText = '';
+        if (wasFiltered){ adminRefocusSearch = true; adminLoadList(); }
+        else { const c = document.querySelector('.adm-count'); if (c) c.innerHTML = adminCountHtml; }
+      } else {
+        const c = document.querySelector('.adm-count');
+        if (c) c.textContent = 'Press Enter to search';
+      }
+    });
+    si.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){
+        e.preventDefault();
+        const v = si.value.trim();
+        if (v === adminSearchQuery) return;
+        adminSearchQuery = v;
+        si.blur();
+        adminLoadList();
+      } else if (e.key === 'Escape'){
+        e.preventDefault();
+        const wasFiltered = adminSearchQuery !== '';
+        adminSearchText = ''; adminSearchQuery = '';
+        si.value = '';
+        if (wasFiltered){ adminRefocusSearch = true; adminLoadList(); }
+        else { const c = document.querySelector('.adm-count'); if (c) c.innerHTML = adminCountHtml; }
+      }
     });
   }
   const ms = document.getElementById('admMobileSort');
@@ -3438,10 +3610,6 @@ function adminRenderList(){
       const [col, dir] = e.target.value.split(':');
       adminSortCol = col; adminSortDir = dir; adminLoadList();
     });
-  }
-  const sv = document.getElementById('admSurveyor');
-  if (sv){
-    sv.addEventListener('change', (e) => { adminSurveyor = e.target.value; adminLoadList(); });
   }
 }
 
@@ -3590,7 +3758,7 @@ async function renderAdmin(){
         adminEmail = null;
         adminChecking = false;
         adminErr = '';
-        try { await sbClient.auth.signInAnonymously(); } catch(e){}
+        try { sbStorage.persistent = true; await sbClient.auth.signInAnonymously(); } catch(e){}
         return renderAdmin();
       }
       adminChecking = false; adminErr = '';
@@ -3622,6 +3790,10 @@ async function renderAdmin(){
             <input id="e" type="email" autocomplete="email"></div>
           <div class="field"><label for="p">Password</label>
             <input id="p" type="password" autocomplete="current-password"></div>
+          <label class="remember">
+            <input type="checkbox" id="keepSignIn">
+            <span>Keep me signed in</span>
+          </label>
           <button class="btn" data-act="adminSignIn">Sign in</button>
           ${adminErr ? `<div class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/>
@@ -3637,7 +3809,7 @@ async function renderAdmin(){
   if (adminView === 'detail'){
     adminRenderDetail();
   } else {
-    if (!adminLoadingList && adminSurveys.length === 0 && !adminListError && !adminSearchQuery){
+    if (adminListStatus !== 'loading' && adminListStatus !== 'error' && adminSurveys.length === 0 && !adminListError && !adminSearchQuery){
       adminLoadList();
     } else {
       adminRenderList();

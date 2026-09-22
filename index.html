@@ -535,6 +535,9 @@ dialog::backdrop{ background:rgba(14,20,23,.5) }
   display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
 .opt[aria-pressed="true"] .box{background:var(--primary);border-color:var(--primary)}
 .opt[aria-pressed="true"]{font-weight:600;color:var(--ink)}
+.opt .dot{flex:0 0 auto;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:13px;font-weight:700}
+.opt[aria-pressed="true"] .dot{border-color:var(--primary)}
 
 .confirmbox{ padding:var(--pad); overflow-y:auto }
 .confirmbox h3{margin:0 0 8px;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
@@ -932,8 +935,13 @@ body.modal-open{ overflow:hidden }
 .adm-filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .adm-filters button .cnt{font-weight:700;margin-left:5px;opacity:.7}
 .adm-sel-wrap{flex:0 0 auto;position:relative;width:170px;overflow:hidden;text-overflow:ellipsis}
-.adm-sel-wrap select{min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer;width:100%}
-.adm-sel-wrap select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
+.adm-surveyor-btn{display:flex;align-items:center;gap:6px;min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:border-color 120ms ease,box-shadow 120ms ease}
+.adm-surveyor-btn:hover{border-color:var(--steel)}
+.adm-surveyor-btn:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
+.adm-surveyor-btn .chev{flex:0 0 auto;margin-left:auto;margin-right:-20px;width:16px;height:16px;color:var(--muted);pointer-events:none}
+@media (pointer:coarse){
+  .adm-surveyor-btn{min-height:52px}
+}
 
 
 
@@ -955,7 +963,7 @@ body.modal-open{ overflow:hidden }
   .adm-mobile-sort select{width:100%}
   .adm-search{flex:1 1 100%}
   .adm-filters{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;flex:1 1 100%;scrollbar-width:none;
-    margin-left:calc(-1 * var(--pad));margin-right:calc(-1 * var(--pad));padding-left:var(--pad);padding-right:var(--pad)}
+    margin-left:calc(-1 * var(--pad));margin-right:calc(-1 * var(--pad));padding-left:var(--pad);padding-right:var(--pad);padding-bottom:4px}
   .adm-filters::-webkit-scrollbar{display:none}
   .adm-sel-wrap{flex:1 1 0;min-width:0;width:auto;overflow:hidden;text-overflow:ellipsis}
   .adm-count{margin-left:0;flex:0 0 auto}
@@ -1946,6 +1954,12 @@ sheet.addEventListener('click', (e) => {
   if (!t){ if (e.target === sheet) sheet.close(); return; }
   const act = t.dataset.act;
   if (act === 'sheetdone'){ sheet.close(); return; }
+  if (act === 'admSurveyorChoice'){
+    sheet.close();
+    adminSurveyor = t.dataset.v || '';
+    adminLoadList();
+    return;
+  }
   if (act === 'opt'){
     const f = FIELD_INDEX[sheetField];
     const cur = arr(S.answers[f.id]);
@@ -2821,6 +2835,10 @@ app.addEventListener('click', async (e) => {
       adminLoadList();
       break;
     }
+    case 'adminSurveyorPick': e.stopPropagation(); {
+      adminOpenSurveyorPicker();
+      break;
+    }
     case 'del': await deleteSurvey(t.dataset.id); break;
     case 'startSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = true; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
     case 'cancelSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = false; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
@@ -3278,6 +3296,26 @@ async function adminLoadSurveyors(){
   renderAdmin();
 }
 
+function adminOpenSurveyorPicker(){
+  const opts = [''].concat(adminSurveyors.slice());
+  const rows = opts.map((name, i) => {
+    const label = name || 'All surveyors';
+    const selected = (name || '') === adminSurveyor;
+    if (i === 0 && adminSurveyors.length === 0){
+      return `<button type="button" class="opt" data-act="admSurveyorChoice" data-v="" aria-pressed="${selected}"><span class="dot" aria-hidden="true">${selected ? '&#10003;' : ''}</span><span>${esc(label)}</span></button>
+        <p class="empty-note" style="padding:0 var(--pad) 12px;color:var(--muted);font-size:13.5px">No surveyors yet.</p>`;
+    }
+    return `<button type="button" class="opt" data-act="admSurveyorChoice" data-v="${esc(name)}" aria-pressed="${selected}"><span class="dot" aria-hidden="true">${selected ? '&#10003;' : ''}</span><span>${esc(label)}</span></button>`;
+  }).join('');
+  sheetBody.innerHTML = `
+    <div class="sheet-head">
+      <h3>Surveyor</h3>
+    </div>
+    <div class="sheet-list">${rows}</div>`;
+  sheet.className = 'picker';
+  openDialog(sheet);
+}
+
 async function adminLoadList(){
   const reqId = ++adminListReqId;
   if (!sbClient) { adminListStatus = 'error'; adminListError = 'Cannot reach the server. Check your connection and try again.'; adminSurveys = []; renderAdmin(); return; }
@@ -3485,9 +3523,7 @@ function adminRenderList(){
     return `<button data-act="adminFilter" data-v="${f.id}" aria-pressed="${active}">${f.label}<span class="cnt">${cnt}</span></button>`;
   }).join('');
 
-  const surveyorOpts = ['<option value="">All surveyors</option>'].concat(
-    adminSurveyors.map(n => `<option value="${esc(n)}"${adminSurveyor === n ? ' selected' : ''}>${esc(n)}</option>`)
-  ).join('');
+  const surveyorLabel = adminSurveyor || 'All surveyors';
 
   const mobileSortOpts = [
     `<option value="submitted_at:desc"${adminSortCol==='submitted_at'&&adminSortDir==='desc'?' selected':''}>Submitted, newest first</option>`,
@@ -3524,7 +3560,7 @@ function adminRenderList(){
       </div>
       <div class="adm-filters">${pills}</div>
       <div class="adm-sel-wrap">
-        <select id="admSurveyor" aria-label="Filter by surveyor"${adminSurveyors.length === 0 ? ' disabled' : ''}>${surveyorOpts}</select>
+        <button type="button" class="adm-surveyor-btn" data-act="adminSurveyorPick" aria-label="Filter by surveyor" aria-haspopup="dialog"><span style="overflow:hidden;text-overflow:ellipsis">${esc(surveyorLabel)}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
       </div>
       <div class="adm-count">${pendingSearch ? 'Press Enter to search' : adminCountHtml}</div>
     </div>
@@ -3574,10 +3610,6 @@ function adminRenderList(){
       const [col, dir] = e.target.value.split(':');
       adminSortCol = col; adminSortDir = dir; adminLoadList();
     });
-  }
-  const sv = document.getElementById('admSurveyor');
-  if (sv){
-    sv.addEventListener('change', (e) => { adminSurveyor = e.target.value; adminLoadList(); });
   }
 }
 
