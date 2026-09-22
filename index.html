@@ -761,8 +761,8 @@ body.modal-open{ overflow:hidden }
   .adm-link{padding:0 8px}
 }
 
-.adm-controls{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:12px var(--pad);max-width:1180px;margin:0 auto;width:100%}
-.adm-search{position:relative;flex:1 1 auto;max-width:420px}
+.adm-controls{flex:0 0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px var(--pad);max-width:1180px;margin:0 auto;width:100%}
+.adm-search{position:relative;flex:1 1 240px;min-width:200px;max-width:360px}
 .adm-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted);pointer-events:none}
 .adm-search input{width:100%;min-height:40px;padding:0 12px 0 38px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:14.5px;font-family:inherit}
 .adm-search input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
@@ -870,17 +870,16 @@ body.modal-open{ overflow:hidden }
 .photodlg .photoclose:hover{background:rgba(14,20,23,.75)}
 
 /* admin filter pills + sort */
-.adm-filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0}
-.adm-filters::-webkit-scrollbar{display:none}
+.adm-filters{display:flex;gap:8px;flex-wrap:wrap;flex:0 0 auto}
 .adm-filters button{flex:0 0 auto;min-height:38px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);color:var(--steel);font-size:13.5px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background 120ms ease,border-color 120ms ease,color 120ms ease}
 .adm-filters button:hover{border-color:var(--steel)}
 .adm-filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .adm-filters button .cnt{font-weight:700;margin-left:5px;opacity:.7}
-.adm-sel-wrap{flex:0 0 auto;position:relative}
-.adm-sel-wrap select{min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer;max-width:180px}
+.adm-sel-wrap{flex:0 0 auto;position:relative;width:170px;overflow:hidden;text-overflow:ellipsis}
+.adm-sel-wrap select{min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer;width:100%}
 .adm-sel-wrap select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
 
-.adm-controls2{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:0 var(--pad) 10px;max-width:1180px;margin:0 auto;width:100%}
+
 
 /* sortable headers */
 .adm-th{cursor:pointer;user-select:none;transition:color 120ms ease}
@@ -897,6 +896,8 @@ body.modal-open{ overflow:hidden }
 .adm-mobile-sort select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
 @media (max-width:819px){
   .adm-mobile-sort{display:flex}
+  .adm-search{flex:1 1 100%}
+  .adm-count{margin-left:0}
 }
 .adm-clear-btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);color:var(--steel);font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:0 0 auto}
 .adm-clear-btn:hover{background:var(--paper);border-color:var(--steel)}
@@ -3025,7 +3026,7 @@ async function adminSignOut(){
   adminLoadingList = false; adminListError = null;
   adminDetailRow = null; adminDetailPhotos = []; adminDetailLoading = false; adminDetailError = null;
   adminPdfBusy = false; adminPdfError = null;
-  adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
+  adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
   try { await sbClient.auth.signInAnonymously(); } catch(e){}
   navigate('/');
 }
@@ -3035,7 +3036,7 @@ function handleRouteChange(){
   if (S.record) persist();
   const r = currentRoute();
   if (r === 'surveys'){ S.view = 'list'; S.record = null; S.answers = null; S.selectMode = false; S.selectedIds.clear(); loadList(); }
-  else if (r === 'admin'){ adminErr = ''; adminChecking = true; adminView = 'list'; adminDetailRow = null; adminDetailPhotos = []; adminPdfError = null; adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; renderAdmin(); }
+  else if (r === 'admin'){ adminErr = ''; adminChecking = true; adminView = 'list'; adminDetailRow = null; adminDetailPhotos = []; adminPdfError = null; adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; renderAdmin(); }
   else if (r === 'submitted' && S.record){ render(); }
   else render();
 }
@@ -3127,6 +3128,7 @@ let adminSortDir = 'desc';
 let adminFilter = 'all';
 let adminSurveyor = '';
 let adminSurveyors = [];
+let adminSurveyorsLoaded = false;
 let adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
 
 const SAMPLE_SURVEYS = [
@@ -3153,6 +3155,31 @@ const FILTER_DEFS = [
   { id:'real', label:'Real' },
   { id:'sample', label:'Sample' },
 ];
+
+async function adminLoadSurveyors(){
+  if (!sbClient){ adminSurveyors = []; adminSurveyorsLoaded = true; return; }
+  try {
+    const { data, error } = await sbClient.from('survey_list').select('surveyed_by');
+    if (error) throw error;
+    const names = [...new Set(
+      (data || [])
+        .map(r => r.surveyed_by)
+        .map(v => v == null ? '' : String(v).trim())
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    adminSurveyors = names;
+  } catch(e){
+    console.error('SURVEYOR FILTER', {
+      code: e && e.code,
+      message: e && e.message,
+      details: e && e.details,
+      hint: e && e.hint
+    });
+    adminSurveyors = [];
+  }
+  adminSurveyorsLoaded = true;
+  renderAdmin();
+}
 
 async function adminLoadList(){
   if (!sbClient) { adminListError = 'Cannot reach the server. Check your connection and try again.'; adminLoadingList = false; renderAdmin(); return; }
@@ -3187,11 +3214,6 @@ async function adminLoadList(){
       sbClient.from('survey_list').select('id',{ count:'exact', head:true }).eq('status','SUBMITTED').eq('is_sample', true),
     ]);
     adminCounts = { all: allCount||0, week: weekCount||0, photos: photosCount||0, real: realCount||0, sample: sampleCount||0 };
-
-    /* distinct surveyors */
-    const { data: surveyors } = await sbClient.from('survey_list').select('surveyed_by').eq('status','SUBMITTED').not('surveyed_by','is','');
-    const names = [...new Set((surveyors||[]).map(r => r.surveyed_by).filter(Boolean))].sort((a,b) => a.localeCompare(b));
-    adminSurveyors = names;
   } catch(e){
     adminListError = (e && e.message) || 'Could not load surveys. Try again.';
     adminSurveys = [];
@@ -3388,13 +3410,11 @@ function adminRenderList(){
       <div class="adm-mobile-sort">
         <select id="admMobileSort" aria-label="Sort by">${mobileSortOpts}</select>
       </div>
-      <div class="adm-count"><b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}</div>
-    </div>
-    <div class="adm-controls2">
       <div class="adm-filters">${pills}</div>
       <div class="adm-sel-wrap">
-        <select id="admSurveyor" aria-label="Filter by surveyor">${surveyorOpts}</select>
+        <select id="admSurveyor" aria-label="Filter by surveyor"${adminSurveyors.length === 0 ? ' disabled' : ''}>${surveyorOpts}</select>
       </div>
+      <div class="adm-count"><b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}</div>
     </div>
     <div class="adm-scroll" id="admScroll">
       <div class="adm-scroll-inner">
@@ -3574,6 +3594,7 @@ async function renderAdmin(){
         return renderAdmin();
       }
       adminChecking = false; adminErr = '';
+      if (!adminSurveyorsLoaded) adminLoadSurveyors();
       await waitForSignInAnimation();
       signInSuccess(() => renderAdmin());
     } catch(e){
