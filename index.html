@@ -91,7 +91,7 @@ h1,h2,label,button,.btn,.linkbtn,.step,.snav,.pill,.filters button,.yesno span,.
 /* ---------- shell ---------- */
 #app{height:100dvh;display:flex;flex-direction:column;background:var(--paper);visibility:hidden;overflow:hidden}
 .topbar{flex:0 0 auto;background:var(--paper);border-bottom:1px solid var(--line);
-  padding-block:max(env(safe-area-inset-top),14px) 14px}
+  padding-block:calc(14px + env(safe-area-inset-top, 0px)) 14px}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
 /* Constrain header contents to the same measure as the content beneath.
    The divider rule still runs the full width of the window. */
@@ -129,7 +129,7 @@ h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700;letter-spacing:
 .eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--primary);margin:0 0 4px}
 @media (min-width:768px){ h1{font-size:28px} h2{font-size:26px} }
 
-main{flex:1 1 auto;min-height:0;padding-block:var(--pad) 28px}
+main{flex:1 1 auto;min-height:0;padding-block:var(--pad) calc(28px + env(safe-area-inset-bottom, 0px))}
 .bottombar{flex:0 0 auto;background:var(--card);border-top:1px solid var(--line);
   padding-block:12px max(env(safe-area-inset-bottom),12px)}
 /* Survey list: main is a flex column — filters pin, card list scrolls. */
@@ -214,7 +214,7 @@ a.btn{text-decoration:none;color:#fff}
 .pill.SENT{background:var(--success-soft);color:var(--success)}
 
 /* ---------- homepage ---------- */
-.home.landing{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.home.landing{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top, 0px)}
 .home.landing .shot{height:32dvh;min-height:200px;position:relative;overflow:hidden;
   flex:0 0 auto;background:var(--ink)}
 .home.landing .shot img{width:100%;height:100%;object-fit:cover;object-position:60% 55%;display:block}
@@ -256,7 +256,7 @@ a.btn{text-decoration:none;color:#fff}
   .home.landing .points{gap:9px;margin-bottom:22px}
 }
 .home-back{margin-top:24px;width:auto;min-height:44px;padding:0 20px}
-.home.door{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;padding-block:var(--pad) 15dvh;
+.home.door{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);text-align:center;padding-block:calc(var(--pad) + env(safe-area-inset-top, 0px)) calc(15dvh + env(safe-area-inset-bottom, 0px));
   background:radial-gradient(ellipse 90% 65% at 50% 30%, rgba(10,90,104,0.045), transparent 72%)}
 .home-actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px}
 .home-primary{font-size:18px;font-weight:700;min-height:56px}
@@ -266,7 +266,7 @@ a.btn{text-decoration:none;color:#fff}
 
 /* ---------- confirmation screen ---------- */
 .confirm{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:var(--pad) 15dvh;text-align:center}
+  padding:calc(var(--pad) + env(safe-area-inset-top, 0px)) var(--pad) calc(15dvh + env(safe-area-inset-bottom, 0px));text-align:center}
 .confirm-tick{width:64px;height:64px;border-radius:50%;background:var(--success-soft);
   display:flex;align-items:center;justify-content:center;margin:0 0 20px}
 .confirm-tick svg{width:32px;height:32px}
@@ -296,7 +296,7 @@ a.btn{text-decoration:none;color:#fff}
 .admin-signed b{color:var(--ink)}
 /* ---------- admin sign in ---------- */
 .auth{position:relative;min-height:100dvh;display:flex;align-items:center;
- justify-content:center;padding:24px;overflow:hidden}
+ justify-content:center;padding:calc(24px + env(safe-area-inset-top, 0px)) 24px 24px;overflow:hidden}
 .auth:before{content:"";position:absolute;inset:-2px;z-index:0;opacity:.5;
  background-image:linear-gradient(var(--line) 1px,transparent 1px),
                   linear-gradient(90deg,var(--line) 1px,transparent 1px);
@@ -355,7 +355,7 @@ a.btn{text-decoration:none;color:#fff}
 /* ---------- step strip (narrow) ----------
    Eight steps share the width equally: seven numbered squares plus a
    Review button. Nothing scrolls or gets cut off at any phone width. */
-.steps{flex:0 0 auto;display:flex;gap:6px;padding-block:10px 12px;background:var(--paper);
+.steps{flex:0 0 auto;display:flex;gap:6px;padding-block:calc(10px + env(safe-area-inset-top, 0px)) 12px;background:var(--paper);
   border-bottom:1px solid var(--line);
   width:100%;max-width:100%;padding-inline:var(--pad)}
 .step{flex:1 1 0;min-width:0;height:34px;padding:0;border-radius:var(--r);border:1px solid var(--line);
@@ -748,7 +748,7 @@ body.modal-open{ overflow:hidden }
 /* ---------- admin dashboard ---------- */
 .adm{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
 .adm-top{flex:0 0 auto;background:var(--card);border-bottom:1px solid var(--line)}
-.adm-top-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
+.adm-top-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top, 0px)) var(--pad) 12px}
 .adm-mark{width:32px;height:32px;flex:0 0 auto}
 .adm-top h1{font-size:18px;font-weight:600;margin:0;color:var(--ink);flex:1 1 auto;min-width:0}
 .adm-user{display:flex;align-items:center;gap:10px;flex:0 0 auto}
@@ -776,7 +776,7 @@ body.modal-open{ overflow:hidden }
 .adm-count b{color:var(--ink);font-weight:700}
 
 .adm-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.adm-scroll-inner{max-width:1180px;margin:0 auto;padding:0 var(--pad) 28px}
+.adm-scroll-inner{max-width:1180px;margin:0 auto;padding:0 var(--pad) calc(28px + env(safe-area-inset-bottom, 0px))}
 
 .adm-table{width:100%;border-collapse:collapse;font-size:14px}
 .adm-table thead th{text-align:left;font-size:12px;font-weight:600;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -821,7 +821,7 @@ body.modal-open{ overflow:hidden }
 /* admin detail */
 .adm-detail{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
 .adm-detail-top{flex:0 0 auto;background:var(--card);border-bottom:1px solid var(--line)}
-.adm-detail-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
+.adm-detail-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top, 0px)) var(--pad) 12px}
 .adm-back{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--steel);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 120ms ease,border-color 120ms ease;flex:0 0 auto}
 .adm-back:hover{background:var(--paper);border-color:var(--steel)}
 .adm-back svg{width:16px;height:16px;margin-right:6px}
@@ -834,7 +834,7 @@ body.modal-open{ overflow:hidden }
 .adm-dl svg{width:16px;height:16px}
 
 .adm-detail-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.adm-detail-inner2{max-width:880px;margin:0 auto;padding:24px var(--pad) 48px}
+.adm-detail-inner2{max-width:880px;margin:0 auto;padding:24px var(--pad) calc(48px + env(safe-area-inset-bottom, 0px))}
 .adm-sec{margin-bottom:28px}
 .adm-sec h2{font-size:17px;font-weight:700;color:var(--ink);margin:0 0 4px;letter-spacing:-.01em}
 .adm-sec .sub{font-size:13.5px;color:var(--muted);margin:0 0 14px}
@@ -901,9 +901,14 @@ body.modal-open{ overflow:hidden }
 .adm-mobile-sort select{min-height:38px;padding:0 32px 0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--slate);font-size:13.5px;font-family:inherit;cursor:pointer}
 .adm-mobile-sort select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,90,104,.10)}
 @media (max-width:819px){
-  .adm-mobile-sort{display:flex}
+  .adm-mobile-sort{display:flex;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .adm-mobile-sort select{width:100%}
   .adm-search{flex:1 1 100%}
-  .adm-count{margin-left:0}
+  .adm-filters{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:8px;flex:1 1 100%;scrollbar-width:none;
+    margin-left:calc(-1 * var(--pad));margin-right:calc(-1 * var(--pad));padding-left:var(--pad);padding-right:var(--pad)}
+  .adm-filters::-webkit-scrollbar{display:none}
+  .adm-sel-wrap{flex:1 1 0;min-width:0;width:auto;overflow:hidden;text-overflow:ellipsis}
+  .adm-count{margin-left:0;flex:0 0 auto}
 }
 .adm-clear-btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);color:var(--steel);font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:0 0 auto}
 .adm-clear-btn:hover{background:var(--paper);border-color:var(--steel)}
@@ -2757,6 +2762,15 @@ app.addEventListener('click', async (e) => {
       adminLoadList();
       break;
     }
+    case 'adminShowAll': e.stopPropagation(); {
+      adminSearchQuery = ''; adminSearchText = ''; adminFilter = 'all'; adminSurveyor = '';
+      adminLoadList();
+      break;
+    }
+    case 'adminRetryList': e.stopPropagation(); {
+      adminLoadList();
+      break;
+    }
     case 'del': await deleteSurvey(t.dataset.id); break;
     case 'startSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = true; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
     case 'cancelSelect': { const sc = document.querySelector('.srows'); const top = sc ? sc.scrollTop : 0; S.selectMode = false; S.selectedIds.clear(); render(); if (sc) sc.scrollTop = top; break; }
@@ -3052,7 +3066,7 @@ async function adminSignOut(){
   adminEmail = null;
   adminErr = '';
   adminView = 'list'; adminSurveys = []; adminSearchQuery = ''; adminSearchText = '';
-  adminLoadingList = false; adminListError = null;
+  adminListStatus = 'loading'; adminListError = null; adminListReqId = 0;
   adminDetailRow = null; adminDetailPhotos = []; adminDetailLoading = false; adminDetailError = null;
   adminPdfBusy = false; adminPdfError = null;
   adminSortCol = 'submitted_at'; adminSortDir = 'desc'; adminFilter = 'all'; adminSurveyor = ''; adminSurveyors = []; adminSurveyorsLoaded = false; adminCounts = { all:0, week:0, photos:0, real:0, sample:0 };
@@ -3146,8 +3160,9 @@ let adminSearchQuery = '';
 let adminSearchText = '';
 let adminCountHtml = '';
 let adminRefocusSearch = false;
-let adminLoadingList = false;
+let adminListStatus = 'loading';
 let adminListError = null;
+let adminListReqId = 0;
 let adminDetailRow = null;
 let adminDetailPhotos = [];
 let adminDetailLoading = false;
@@ -3214,8 +3229,9 @@ async function adminLoadSurveyors(){
 }
 
 async function adminLoadList(){
-  if (!sbClient) { adminListError = 'Cannot reach the server. Check your connection and try again.'; adminLoadingList = false; renderAdmin(); return; }
-  adminLoadingList = true; adminListError = null;
+  const reqId = ++adminListReqId;
+  if (!sbClient) { adminListStatus = 'error'; adminListError = 'Cannot reach the server. Check your connection and try again.'; adminSurveys = []; renderAdmin(); return; }
+  adminListStatus = 'loading'; adminListError = null;
   renderAdmin();
   try {
     let base = sbClient.from('survey_list').select('*').eq('status','SUBMITTED');
@@ -3235,6 +3251,7 @@ async function adminLoadList(){
     const sortCol = SORT_COLS[adminSortCol] || 'submitted_at';
     const { data, error } = await base.order(sortCol, { ascending: adminSortDir === 'asc' });
     if (error) throw error;
+    if (reqId !== adminListReqId) return;
     adminSurveys = data || [];
 
     /* counts: run unfiltered count queries for each pill */
@@ -3245,12 +3262,21 @@ async function adminLoadList(){
       sbClient.from('survey_list').select('id',{ count:'exact', head:true }).eq('status','SUBMITTED').eq('is_sample', false),
       sbClient.from('survey_list').select('id',{ count:'exact', head:true }).eq('status','SUBMITTED').eq('is_sample', true),
     ]);
+    if (reqId !== adminListReqId) return;
     adminCounts = { all: allCount||0, week: weekCount||0, photos: photosCount||0, real: realCount||0, sample: sampleCount||0 };
+    adminListStatus = adminSurveys.length > 0 ? 'ready' : 'empty';
   } catch(e){
-    adminListError = (e && e.message) || 'Could not load surveys. Try again.';
+    if (reqId !== adminListReqId) return;
+    console.error('SURVEY LIST', {
+      code: e && e.code,
+      message: e && e.message,
+      details: e && e.details,
+      hint: e && e.hint
+    });
+    adminListError = e;
     adminSurveys = [];
+    adminListStatus = 'error';
   }
-  adminLoadingList = false;
   renderAdmin();
 }
 
@@ -3337,15 +3363,17 @@ function adminRenderList(){
   const isFiltered = adminSearchQuery.trim() || adminFilter !== 'all' || adminSurveyor;
 
   let body;
-  if (adminListError){
-    body = `<div class="adm-error"><div class="box">${esc(adminListError)}</div></div>`;
-  } else if (adminLoadingList){
+  if (adminListStatus === 'loading'){
     body = `<div class="adm-loading"><div class="spin"></div><p>Loading surveys…</p></div>`;
-  } else if (all.length === 0){
-    if (isFiltered){
-      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No surveys match that.</h2><button class="adm-clear-btn" data-act="adminClearFilters">Clear filters</button></div>`;
+  } else if (adminListStatus === 'error'){
+    body = `<div class="adm-empty">${EMPTY_SVG}<h2>Could not load the surveys</h2><p>Something went wrong reaching the office records. Nothing has been lost. Try again in a moment.</p><button class="adm-clear-btn" data-act="adminRetryList">Try again</button></div>`;
+  } else if (adminListStatus === 'empty'){
+    if (adminFilter === 'real' && !adminSearchQuery.trim() && !adminSurveyor){
+      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No real surveys yet</h2><p>Every survey so far is marked as sample from testing. One appears here as soon as a survey is submitted with the sample marker cleared.</p><button class="adm-clear-btn" data-act="adminShowAll">Show all surveys</button></div>`;
+    } else if (isFiltered){
+      body = `<div class="adm-empty">${EMPTY_SVG}<h2>Nothing matches</h2><p>No submitted survey matches the filters you have on.</p><button class="adm-clear-btn" data-act="adminShowAll">Show all surveys</button></div>`;
     } else {
-      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No surveys submitted yet.</h2><p>Submitted surveys will appear here.</p></div>`;
+      body = `<div class="adm-empty">${EMPTY_SVG}<h2>No surveys yet</h2><p>Submitted surveys appear here as soon as an engineer sends one.</p></div>`;
     }
   } else {
     const rows = all.map(s => {
@@ -3396,7 +3424,7 @@ function adminRenderList(){
       <div class="adm-cards">${cards}</div>`;
   }
 
-  const countLabel = hasReal ? `${count} survey${count===1?'':'s'}` : (adminLoadingList ? '…' : '0 surveys');
+  const countLabel = hasReal ? `${count} survey${count===1?'':'s'}` : (adminListStatus === 'loading' ? '…' : '0 surveys');
   adminCountHtml = `<b>${countLabel.split(' ')[0]}</b> ${countLabel.split(' ').slice(1).join(' ')}`;
   const searchVal = esc(adminSearchText);
   const pendingSearch = adminSearchText.trim() !== adminSearchQuery;
@@ -3459,7 +3487,7 @@ function adminRenderList(){
 
   const si = document.getElementById('admSearch');
   if (si){
-    if (adminRefocusSearch && !adminLoadingList){ adminRefocusSearch = false; si.focus(); }
+    if (adminRefocusSearch && adminListStatus !== 'loading'){ adminRefocusSearch = false; si.focus(); }
     si.addEventListener('input', (e) => {
       adminSearchText = e.target.value;
       if (adminSearchText.trim() === ''){
@@ -3699,7 +3727,7 @@ async function renderAdmin(){
   if (adminView === 'detail'){
     adminRenderDetail();
   } else {
-    if (!adminLoadingList && adminSurveys.length === 0 && !adminListError && !adminSearchQuery){
+    if (adminListStatus !== 'loading' && adminListStatus !== 'error' && adminSurveys.length === 0 && !adminListError && !adminSearchQuery){
       adminLoadList();
     } else {
       adminRenderList();
