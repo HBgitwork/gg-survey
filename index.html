@@ -1788,7 +1788,6 @@ function footerHTML(sec, miss, submitted, secs){
       <button class="btn grow2" data-act="next">${S.step === secs.length-1 ? 'Review' : 'Next'}</button>
     </div>`;
   }
-  }
   if (submitted){
     return `<div class="row" style="margin-bottom:10px">
         <button class="btn" data-act="pdf">Download PDF</button>
@@ -3982,10 +3981,15 @@ function boot(){
   let appReady = false;
   let finished = false;
   let finishScheduled = false;
+  let bootTimedOut = false;
 
   function lightPane(i){
     panes[i].classList.add('lit');
     msgEl.textContent = MESSAGES[i];
+  }
+  function removeBootLoader(){
+    if (bootEl.parentNode) bootEl.remove();
+    app.style.visibility = 'visible';
   }
   function scheduleFinish(){
     if (finished || finishScheduled || lit < 4) return;
@@ -4002,9 +4006,8 @@ function boot(){
     setTimeout(() => {
       bootEl.classList.add('done');
       setTimeout(() => {
-        bootEl.remove();
-        render();
-        app.style.visibility = 'visible';
+        removeBootLoader();
+        try { render(); } catch(e){ console.error('Boot render failed', e); }
       }, t2);
     }, t1);
   }
@@ -4021,20 +4024,46 @@ function boot(){
     }
   }, 50);
 
-  Store.init().then(() => loadList())
-    .then(() => { syncPending(); appReady = true; if (lit >= 4 && !finished) scheduleFinish(); })
-    .catch(err => {
-      clearInterval(timer);
-      bootEl.remove();
-      app.style.visibility = 'visible';
-      app.innerHTML = `<div class="boot-fatal">
-        <img class="boot-fatal-logo" src="${LOGO_FULL}" alt="GG Glass and Glazing" draggable="false">
-        <h1>The app could not start</h1>
-        <p class="boot-fatal-lead">Nothing has been lost. Close the tab and open it again.</p>
-        <div class="boot-fatal-help"><p>If it keeps happening, send this line to Harry:</p>
-          <p><strong>${esc(String((err && err.message) || err))}</strong></p></div>
-      </div>`;
-    });
+  /* Hard timeout: if the loader is still on screen 8s after first paint,
+     remove it regardless of where the boot got to. A broken screen someone
+     can see beats a loader they cannot get past. */
+  setTimeout(() => {
+    if (finished || bootEl.parentNode === null) return;
+    bootTimedOut = true;
+    console.warn('Boot timed out after 8s, forcing loader removal');
+    clearInterval(timer);
+    removeBootLoader();
+    try { render(); } catch(e){ console.error('Boot timeout render failed', e); }
+  }, 8000);
+
+  try {
+    Store.init().then(() => loadList())
+      .then(() => { syncPending(); appReady = true; if (lit >= 4 && !finished) scheduleFinish(); })
+      .catch(err => {
+        console.error('Boot sequence failed', err);
+        clearInterval(timer);
+        removeBootLoader();
+        try {
+          render();
+          const banner = document.createElement('div');
+          banner.className = 'banner danger';
+          banner.style.cssText = 'margin:0 0 16px;border-radius:0';
+          banner.innerHTML = '<b>Something went wrong starting up.</b> Your surveys are safe on this device.';
+          app.insertBefore(banner, app.firstChild);
+        } catch(e){ console.error('Boot error render failed', e); }
+      });
+  } catch(err){
+    console.error('Boot threw synchronously', err);
+  } finally {
+    /* Never let the loader removal depend on a step that can throw. */
+    setTimeout(() => {
+      if (bootEl.parentNode && !finished && !bootTimedOut){
+        console.warn('Boot finally safety net removing loader');
+        removeBootLoader();
+        try { render(); } catch(e){ console.error('Boot finally render failed', e); }
+      }
+    }, 8500);
+  }
 }
 boot();
 </script>
